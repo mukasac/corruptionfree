@@ -19,7 +19,15 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const result = await paginate(prisma.nominee, { page, limit }, filters);
+  // Define include to fetch related models: position, institution, and district
+  const include = {
+    rating: true,
+    position: true,
+    institution: true,
+    district: true,
+  };
+
+  const result = await paginate(prisma.nominee, { page, limit }, filters, include);
 
   return NextResponse.json(result);
 }

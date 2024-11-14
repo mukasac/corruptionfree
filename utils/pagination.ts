@@ -15,6 +15,7 @@ type PaginationParams = {
     model: any, // Prisma model
     params: PaginationParams,
     filter: object = {},
+    include: object = {}, // Include parameter for related data
     orderBy: object = { createdAt: 'desc' } // Default ordering by createdAt
   ): Promise<PaginationResult<T>> {
     const { page = 1, limit = 10 } = params;
@@ -26,6 +27,7 @@ type PaginationParams = {
         where: filter,
         skip: offset,
         take: limit,
+        include, // Include related data
         orderBy,
       }),
       model.count({ where: filter }),
