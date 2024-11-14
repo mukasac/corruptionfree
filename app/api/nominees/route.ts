@@ -21,7 +21,14 @@ export async function GET(req: NextRequest) {
 
     // Define include to fetch related models: position, institution, and district
     const include = {
-        rating: true,
+        rating: {
+
+            select: {
+                evidence: true,
+                severity: true,
+                score: true, ratingCategory: true
+            }
+        },
         position: true,
         institution: true,
         district: true,
