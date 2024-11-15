@@ -27,7 +27,7 @@ export default function NomineePage({ params }: { params: { id: string } }) {
         }
       }
     };
-  
+
     fetchNominee();
   }, [params.id]);
 
@@ -80,7 +80,7 @@ export default function NomineePage({ params }: { params: { id: string } }) {
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold text-gray-500 mb-4">Evidence</h2>
-              <p className="text-gray-600">{nominee.evidence || "No description available."}</p>
+              <p className="text-gray-600">{nominee.evidence || "No Submitted Evidence available."}</p>
             </div>
 
             <div>
@@ -111,7 +111,15 @@ export default function NomineePage({ params }: { params: { id: string } }) {
                 {nominee.rating.length?.toLocaleString() || 0} votes
               </p>
             </div>
-            
+            {/* Rate Button */}
+            <div className="flex justify-end">
+              <a
+                href={`/nominees/${nominee.id}/rate`}
+                className="bg-cyan-700 text-white py-2 px-4 rounded-md hover:bg-cyan-800 transition"
+              >
+                Rate
+              </a>
+            </div>
           </div>
         </CardContent>
       </Card>

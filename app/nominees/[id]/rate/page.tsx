@@ -8,6 +8,7 @@ export default function RateNomineePage({ params }: { params: { id: number } }) 
     const [categories, setCategories] = useState<RatingCategory[]>([]);
     // Use specific type for ratings
     const [ratings, setRatings] = useState<{ ratingCategoryId: number; score: number }[]>([]);
+    const [nomineeName, setNomineeName] = useState<string>('');
     const { id: nomineeId } =  params;
 
     useEffect(() => {
@@ -20,7 +21,14 @@ export default function RateNomineePage({ params }: { params: { id: number } }) 
             setCategories(data.data); // Assuming the response structure is { data: RatingCategory[] }
         }
 
+        async function fetchNomineeDetails() {
+            const response = await fetch(`/api/nominees/${nomineeId}`);
+            const data = await response.json();
+            setNomineeName(data.name); // Assuming the response structure includes a 'name' field
+        }
+
         fetchCategories();
+        fetchNomineeDetails();
     }, [nomineeId]);
 
     const handleRate = (categoryId: number, score: number) => {
@@ -69,10 +77,10 @@ export default function RateNomineePage({ params }: { params: { id: number } }) 
 
     return (
         <div className="max-w-4xl mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-8">Rate Nominee #{nomineeId}</h1>
+            <h1 className="text-3xl text-gray-900 font-bold mb-8">Rate Nominee #{nomineeName}</h1>
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="space-y-6">
-                    <h2 className="text-xl font-semibold">Rate Corruption Metrics</h2>
+                    <h2 className="text-xl text-gray-700 font-semibold">Rate Corruption Metrics</h2>
                     <p className="text-gray-600">
                         Rate each metric from 1 (Minor) to 5 (Extreme) based on available evidence.
                     </p>
@@ -82,17 +90,26 @@ export default function RateNomineePage({ params }: { params: { id: number } }) 
                             <div key={category.id} className="bg-white rounded-lg p-4 shadow-md">
                                 <div className="flex items-center gap-2">
                                     <span className="text-2xl">{category.icon}</span>
-                                    <h3 className="text-lg font-medium">{category.name}</h3>
+                                    <h3 className="text-lg text-gray-700 font-medium">{category.name}</h3>
                                 </div>
                                 <p className="text-gray-500 text-sm mt-1">{category.description}</p>
-
+                                {category.examples && category.examples.length > 0 && (
+                            <div className="mt-2">
+                                <p className="text-sm font-medium text-gray-700">Examples:</p>
+                                <ul className="list-disc list-inside text-sm text-gray-600">
+                                    {category.examples.map((example, index) => (
+                                        <li key={index}>{example}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                                 <div className="flex items-center justify-between mt-4">
                                     {[1, 2, 3, 4, 5].map((value) => (
                                         <button
                                             key={value}
                                             type="button"
                                             onClick={() => handleRate(category.id, value)}
-                                            className={`px-3 py-1 rounded ${ratings.find((r) => r.ratingCategoryId === category.id && r.score === value)
+                                            className={`px-3 py-1 text-gray-600 rounded ${ratings.find((r) => r.ratingCategoryId === category.id && r.score === value)
                                                     ? 'bg-blue-600 text-white'
                                                     : 'bg-gray-200'
                                                 }`}

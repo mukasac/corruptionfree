@@ -37,8 +37,10 @@ const NomineeList: React.FC = () => {
         if (!ratings || ratings.length === 0) {
             return <p>No ratings available</p>;
         }
-
-        return ratings.map((rating) => (
+    
+        const limitedRatings = ratings.slice(0, 2); // Limit to first two ratings
+    
+        return limitedRatings.map((rating) => (
             <div key={rating.id}>
                 <hr />
                 <div>Category: {rating.ratingCategory.name}</div>
@@ -46,7 +48,6 @@ const NomineeList: React.FC = () => {
                 <p>Score: {rating.score}/5</p>
                 <div>Description: {rating.ratingCategory.description}</div>
                 <p>Evidence: {rating.evidence || 'No evidence provided'}</p>
-
             </div>
         ));
     };
@@ -77,15 +78,20 @@ const NomineeList: React.FC = () => {
                         </div>
 
                         {/* Nominee Rating */}
+                        <p className='text-gray-700'>Most Recent Corruption Ratings</p>
                         <div className="flex items-center gap-4 text-sm text-gray-500">
                             <div>{renderNomineeRating(nominee.rating)}</div>
                         </div>
 
                         {/* Votes */}
-                        <p className="mt-4 text-blue-700">Votes: {nominee.rating.length}</p>
+                        <p className="mt-4 text-gray-900">Total Votes: {nominee.rating.length}</p>
 
                         {/* Evidence */}
-                        <p className="mt-4 text-gray-700">{nominee.evidence}</p>
+                        <div className="mt-4  text-gray-700">
+                            <p>Evidence:</p>
+                            <p>{nominee.evidence || 'No evidence provided'}</p>
+                        </div >
+                        
 
                         {/* Rate Button */}
                         <a
