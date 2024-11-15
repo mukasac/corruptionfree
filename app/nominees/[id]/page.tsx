@@ -89,6 +89,7 @@ export default function NomineePage({ params }: { params: { id: string } }) {
                 {nominee.rating.map((rating) => (
                   <div key={rating.id} className="bg-gray-50 p-4 rounded-lg">
                     <div className="flex justify-between items-center mb-2">
+                      {/* <p className="text-2xl">{rating.ratingCategory.icon}</p> */}
                       <span className="font-medium text-gray-500"> {rating.ratingCategory.name}</span>
                       <span className="text-blue-600 font-bold">
                         {rating.score.toFixed(1)}/5.0
