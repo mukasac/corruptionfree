@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+
 const prisma = new PrismaClient();
 
-// POST - Submit a rating for the nominee
 export async function POST(req: NextRequest) {
   try {
     // Extract the nominee ID from the URL parameter
-    const nomineeId = parseInt(req.nextUrl.pathname.split('/')[3], 10); // Fetch the id from URL (e.g., api/nominees/1/rate)
+    const nomineeId = parseInt(req.nextUrl.pathname.split('/')[3], 10);
 
     // Check if the nominee exists
     const nominee = await prisma.nominee.findUnique({
@@ -17,30 +17,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Nominee not found' }, { status: 404 });
     }
 
-    // Extract rating details from the request body
-    const { userId, ratingCategoryId, score, severity, evidence } = await req.json();
+    // Extract ratings array from the request body
+    const { ratings } = await req.json();
 
-    // Validate rating fields
-    if (typeof score !== 'number' || typeof severity !== 'number') {
-      return NextResponse.json({ error: 'Invalid score or severity' }, { status: 400 });
+    if (!Array.isArray(ratings) || ratings.length === 0) {
+      return NextResponse.json({ error: 'Ratings must be an array with at least one item' }, { status: 400 });
     }
 
-    // Create the rating for the nominee
-    const newRating = await prisma.nomineeRating.create({
-      data: {
-        userId,
-        nomineeId,
-        ratingCategoryId,
-        score,
-        severity,
-        evidence,
-      },
-    });
+    // Validate and create each rating
+    const createdRatings = [];
+    for (const rating of ratings) {
+      const { userId, ratingCategoryId, score, severity, evidence } = rating;
 
-    // Return the newly created rating
-    return NextResponse.json(newRating, { status: 201 });
+      if (typeof score !== 'number' || typeof severity !== 'number') {
+        return NextResponse.json({ error: 'Invalid score or severity' }, { status: 400 });
+      }
+
+      const newRating = await prisma.nomineeRating.create({
+        data: {
+          userId,
+          nomineeId,
+          ratingCategoryId,
+          score,
+          severity,
+          evidence,
+        },
+      });
+
+      createdRatings.push(newRating);
+    }
+
+    // Return the created ratings
+    return NextResponse.json({ ratings: createdRatings }, { status: 201 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: 'Error submitting rating' }, { status: 500 });
+    return NextResponse.json({ error: 'Error submitting ratings' }, { status: 500 });
   }
 }
