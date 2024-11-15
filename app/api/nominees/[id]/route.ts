@@ -14,7 +14,14 @@ export async function GET(req: NextRequest) {
                 position: true,
                 institution: true,
                 district: true,
-                rating: true,
+                rating: {
+
+                    select: {
+                        evidence: true,
+                        severity: true,
+                        score: true, ratingCategory: true
+                    }
+                },
             },
         });
 

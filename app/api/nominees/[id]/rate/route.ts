@@ -7,7 +7,6 @@ export async function POST(req: NextRequest) {
   try {
     // Extract the nominee ID from the URL parameter
     const nomineeId = parseInt(req.nextUrl.pathname.split('/')[3], 10); // Fetch the id from URL (e.g., api/nominees/1/rate)
-    console.log(nomineeId);
 
     // Check if the nominee exists
     const nominee = await prisma.nominee.findUnique({

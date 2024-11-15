@@ -1,80 +1,13 @@
-// src/app/nominees/page.tsx
 "use client"; // This ensures the page is treated as a Client Component
 import React, { useEffect, useState } from 'react';
 
 // Define types for the nominee, rating, position, institution, and district
-interface Rating {
-    id: number;
-    userId: number;
-    nomineeId: number;
-    ratingCategoryId: number;
-    score: number;
-    severity: number;
-    evidence: string | null;
-    createdAt: string;
-    ratingCategory: RatingCategory
-}
-
-interface RatingCategory {
-    id: number
-    keyword: String
-    name: String
-    icon: String
-    description: String
-    weight: number
-    examples: String[]
-    // impactAreas: ImpactArea[]
-    // departments: Department[]
-
-    // NomineeRating: NomineeRating[]
-
-    // InstitutionRating: InstitutionRating[]
-    createdAt: String
-}
-
-interface Position {
-    id: number;
-    name: string;
-    createdAt: string;
-}
-
-interface Institution {
-    id: number;
-    name: string;
-    createdAt: string;
-}
-
-interface District {
-    id: number;
-    name: string;
-    region: string;
-    createdAt: string;
-}
-
-interface Nominee {
-    id: number;
-    name: string;
-    positionId: number;
-    institutionId: number;
-    districtId: number;
-    status: boolean;
-    evidence: string | null;
-    createdAt: string;
-    rating: Rating[];
-    position: Position;
-    institution: Institution;
-    district: District;
-}
-
-interface NomineeResponse {
-    count: number;
-    pages: number;
-    currentPage: number;
-    data: Nominee[];
-}
+import { Nominee, NomineeResponse, Rating, } from '@/types/interfaces';
 
 // Functional component to fetch and display nominees
 const NomineeList: React.FC = () => {
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
     // State to store fetched nominees data
     const [nominees, setNominees] = useState<Nominee[]>([]);
     const [meta, setMeta] = useState<{
@@ -95,13 +28,13 @@ const NomineeList: React.FC = () => {
         fetchNominees().then((data) => {
             setNominees(data.data);
             setMeta({ count: data.count, pages: data.pages, currentPage: data.currentPage, });
-        });
+        }).finally(() => setIsLoading(false));
 
     }, []);
 
     // Render the ratings for a nominee
     const renderNomineeRating = (ratings: Rating[]) => {
-        if (ratings.length === 0) {
+        if (!ratings || ratings.length === 0) {
             return <p>No ratings available</p>;
         }
 
@@ -121,53 +54,51 @@ const NomineeList: React.FC = () => {
     return (
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold">Nominees ({meta.count})</h1>
-            </div>
+            {isLoading ? (
+                <div>Loading...</div>
+            ) : <div className="mb-6">
+                <h1 className="text-3xl text-gray-600 font-bold">Nominees ({meta.count})</h1>
+            </div>}
+
 
             <div className="space-y-6">
                 {nominees.map((nominee) => (
-                    <div
-                        key={nominee.id}
-                        className="bg-white rounded-lg shadow-md p-6"
-                    >
-                        <h2 className="text-xl text-cyan-700 font-semibold mb-2">{nominee.name}</h2>
+                    <div key={nominee.id} className="bg-white rounded-lg shadow-md p-6 relative">
+                        {/* Nominee Name with Link */}
+                        <h2 className="text-xl text-cyan-700 font-semibold mb-2">
+                            <a href={`/nominees/${nominee.id}`} className="hover:underline">
+                                {nominee.name}
+                            </a>
+                        </h2>
+
+                        {/* Position and Institution */}
                         <div className="text-gray-600 mb-2">
                             {nominee.position.name} at {nominee.institution.name}
                         </div>
+
+                        {/* Nominee Rating */}
                         <div className="flex items-center gap-4 text-sm text-gray-500">
-                            {nominee.rating.length > 0}
                             <div>{renderNomineeRating(nominee.rating)}</div>
                         </div>
-                        <p className="mt-4 text-blue-700">Votes: {nominee.rating.length}</p>
-                        <p className="mt-4 text-gray-700">{nominee.evidence}</p>
-                        
-                    </div>
 
+                        {/* Votes */}
+                        <p className="mt-4 text-blue-700">Votes: {nominee.rating.length}</p>
+
+                        {/* Evidence */}
+                        <p className="mt-4 text-gray-700">{nominee.evidence}</p>
+
+                        {/* Rate Button */}
+                        <a
+                            href={`/nominees/${nominee.id}/rate`}
+                            className="absolute bottom-4 right-4 bg-cyan-700 text-white py-2 px-4 rounded-md hover:bg-cyan-800 transition"
+                        >
+                            Rate
+                        </a>
+                    </div>
                 ))}
             </div>
 
-            {meta.pages > 1 && (
-                <div className="mt-8 flex justify-center space-x-2">
-                    {Array.from({ length: meta.pages }).map((_, i) => {
-                        const pageNumber = i + 1
-                        const isCurrentPage = pageNumber === (meta.currentPage ? (meta.currentPage) : 1)
 
-                        return (
-                            <a
-                                key={i}
-                                href={`/nominees?page=${pageNumber}`}
-                                className={`px-4 py-2 rounded ${isCurrentPage
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                                    }`}
-                            >
-                                {pageNumber}
-                            </a>
-                        )
-                    })}
-                </div>
-            )}
         </div>
     );
 };
