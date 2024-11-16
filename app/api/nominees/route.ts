@@ -61,6 +61,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(newNominee, { status: 201 });
     } catch (error) {
-        return NextResponse.json({ error: 'Error creating nominee' }, { status: 500 });
+        return NextResponse.json({ error: 'Error creating nominee' + error }, { status: 500 });
     }
 }

@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json(nominee);
     } catch (error) {
-        return NextResponse.json({ error: 'Error fetching nominee' }, { status: 400 });
+        return NextResponse.json({ error: 'Error fetching nominee' + error }, { status: 400 });
     }
 }
 
@@ -53,7 +53,7 @@ export async function PATCH(req: NextRequest) {
 
         return NextResponse.json(updatedNominee);
     } catch (error) {
-        return NextResponse.json({ error: 'Error updating nominee' }, { status: 500 });
+        return NextResponse.json({ error: 'Error updating nominee' + error }, { status: 500 });
     }
 }
 
@@ -69,6 +69,6 @@ export async function DELETE(req: NextRequest) {
 
         return NextResponse.json({ message: 'Nominee deleted successfully' });
     } catch (error) {
-        return NextResponse.json({ error: 'Error deleting nominee' }, { status: 500 });
+        return NextResponse.json({ error: 'Error deleting nominee' + error }, { status: 500 });
     }
 }

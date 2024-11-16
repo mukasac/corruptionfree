@@ -1,48 +1,66 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import { RatingCategory } from "@/types/interfaces";
 import { useRouter } from "next/navigation";
+
 export default function RateNomineePage({
   params,
 }: {
-  params: { id: number };
+  params: Promise<{ id: string }>;
 }) {
   const router = useRouter();
-  // Use RatingCategory type for categories
   const [categories, setCategories] = useState<RatingCategory[]>([]);
-  // Use specific type for ratings
-  const [ratings, setRatings] = useState<
-    { ratingCategoryId: number; score: number }[]
-  >([]);
+  const [ratings, setRatings] = useState<{ ratingCategoryId: number; score: number }[]>([]);
   const [nomineeName, setNomineeName] = useState<string>("");
-  const { id: nomineeId } = params;
+  const [nomineeId, setNomineeId] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!nomineeId) return; // Wait until nomineeId is available
+    const resolveParams = async () => {
+      try {
+        const { id } = await params;
+        const parsedId = parseInt(id, 10);
+        setNomineeId(parsedId);
 
-    // Fetch rating categories from API
-    async function fetchCategories() {
-      const response = await fetch("/api/ratingcategories/");
-      const data = await response.json();
-      setCategories(data.data); // Assuming the response structure is { data: RatingCategory[] }
-    }
+        // Fetch categories and nominee details once params are resolved
+        const fetchCategories = async () => {
+          const response = await fetch("/api/ratingcategories/");
+          if (!response.ok) {
+            throw new Error("Failed to fetch categories.");
+          }
+          const data = await response.json();
+          setCategories(data.data);
+        };
 
-    async function fetchNomineeDetails() {
-      const response = await fetch(`/api/nominees/${nomineeId}`);
-      const data = await response.json();
-      setNomineeName(data.name); // Assuming the response structure includes a 'name' field
-    }
+        const fetchNomineeDetails = async () => {
+          const response = await fetch(`/api/nominees/${parsedId}`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch nominee details.");
+          }
+          const data = await response.json();
+          setNomineeName(data.name);
+        };
 
-    fetchCategories();
-    fetchNomineeDetails();
-  }, [nomineeId]);
+        await fetchCategories();
+        await fetchNomineeDetails();
+        setLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An unknown error occurred.");
+        setLoading(false);
+      }
+    };
+
+    resolveParams();
+  }, [params]);
 
   const handleRate = (categoryId: number, score: number) => {
     setRatings((prev) => {
       const existing = prev.find((r) => r.ratingCategoryId === categoryId);
       if (existing) {
         return prev.map((r) =>
-          r.ratingCategoryId === categoryId ? { ...r, score } : r,
+          r.ratingCategoryId === categoryId ? { ...r, score } : r
         );
       }
       return [...prev, { ratingCategoryId: categoryId, score }];
@@ -54,7 +72,7 @@ export default function RateNomineePage({
 
     const payload = {
       ratings: ratings.map((rating) => ({
-        userId: 1, // Example user ID; replace with actual value
+        userId: 1, // Example user ID
         ...rating,
         severity: Math.floor(Math.random() * 5) + 1, // Dummy severity value
         evidence: "Example evidence for rating", // Replace with actual evidence
@@ -76,8 +94,28 @@ export default function RateNomineePage({
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h1 className="text-2xl text-gray-500">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-red-100 text-red-800 rounded-lg p-4">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!nomineeId) {
-    return <p>Loading...</p>;
+    return <p>Invalid nominee ID</p>;
   }
 
   return (
@@ -132,7 +170,7 @@ export default function RateNomineePage({
                         ratings.find(
                           (r) =>
                             r.ratingCategoryId === category.id &&
-                            r.score === value,
+                            r.score === value
                         )
                           ? "bg-blue-600 text-white"
                           : "bg-gray-200"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
+import { Rating } from '@/types/interfaces';
 
 // POST - Create a nominee and submit multiple ratings
 export async function POST(req: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Prepare the ratings data
-      const ratingsData = ratings.map((rating: any) => ({
+      const ratingsData = ratings.map((rating: Rating) => ({
         userId: rating.userId,
         ratingCategoryId: rating.ratingCategoryId,
         score: rating.score,

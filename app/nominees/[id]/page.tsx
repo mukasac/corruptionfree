@@ -5,31 +5,36 @@ import { Badge } from "@/components/ui/badge";
 import React, { useEffect, useState } from "react";
 import { Nominee } from "@/types/interfaces"; // Adjust imports to match your types
 
-export default function NomineePage({ params }: { params: { id: string } }) {
+export default function NomineePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const [nominee, setNominee] = useState<Nominee | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch nominee data dynamically
   useEffect(() => {
-    const fetchNominee = async () => {
-      try {
-        const response = await fetch(`http://localhost:3000/api/nominees/${params.id}/`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch nominee data.");
+    params.then(({ id }) => {
+      const fetchNominee = async () => {
+        try {
+          const response = await fetch(`http://localhost:3000/api/nominees/${id}/`);
+          if (!response.ok) {
+            throw new Error("Failed to fetch nominee data.");
+          }
+          const data = await response.json();
+          setNominee(data);
+        } catch (err) {
+          if (err instanceof Error) {
+            setError(err.message);
+          } else {
+            setError("An unknown error occurred");
+          }
         }
-        const data = await response.json();
-        setNominee(data);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("An unknown error occurred");
-        }
-      }
-    };
+      };
 
-    fetchNominee();
-  }, [params.id]);
+      fetchNominee();
+    });
+  }, [params]);
 
   if (error) {
     return (
