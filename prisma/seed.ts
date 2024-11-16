@@ -3,6 +3,17 @@ const prisma = new PrismaClient();
 const { faker } = require('@faker-js/faker');
 
 async function main() {
+    // Check if essential tables are empty (districts, institutions, users, etc.)
+    const districtCount = await prisma.district.count();
+    const institutionCount = await prisma.institution.count();
+    const userCount = await prisma.user.count();
+
+    if (districtCount > 0 || institutionCount > 0 || userCount > 0) {
+        console.log("Database is not empty. Skipping seeding.");
+        return; // Exit if database is not empty
+    }
+
+    console.log("Database is empty. Proceeding with seeding...");
     // Seed Districts
     const districts = await Promise.all(
         [
