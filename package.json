@@ -10,7 +10,7 @@
     "seed": "ts-node prisma/seed.ts",
     "prisma:generate": "prisma generate", 
     "prisma:migrate": "prisma migrate deploy", 
-    "postinstall": "prisma generate && prisma migrate deploy"
+    "postinstall": "prisma generate && prisma migrate deploy  && ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.2.0",
