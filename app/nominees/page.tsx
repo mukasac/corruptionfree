@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 // Define types for the nominee, rating, position, institution, and district
 import { Nominee, NomineeResponse, Rating, } from '@/types/interfaces';
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Functional component to fetch and display nominees
 const NomineeList: React.FC = () => {
@@ -18,7 +19,7 @@ const NomineeList: React.FC = () => {
 
     // Function to fetch nominees data from the API
     const fetchNominees = async (): Promise<NomineeResponse> => {
-        const response = await fetch('http://localhost:3000/api/nominees/'); // Replace with your actual API endpoint
+        const response = await fetch(`${baseUrl}nominees/`); // Replace with your actual API endpoint
         const data = await response.json();
         return data;
     };

@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import React, { useEffect, useState } from "react";
 import { Nominee } from "@/types/interfaces"; // Adjust imports to match your types
 
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function NomineePage({
   params,
 }: {
@@ -17,7 +19,7 @@ export default function NomineePage({
     params.then(({ id }) => {
       const fetchNominee = async () => {
         try {
-          const response = await fetch(`http://localhost:3000/api/nominees/${id}/`);
+          const response = await fetch(`${baseUrl}nominees/${id}/`);
           if (!response.ok) {
             throw new Error("Failed to fetch nominee data.");
           }
