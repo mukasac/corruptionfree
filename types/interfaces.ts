@@ -44,6 +44,7 @@ export interface Position {
 export interface Institution {
     id: number;
     name: string;
+    status: boolean;
     rating: InstitutionRating[];
     createdAt: string;
 }

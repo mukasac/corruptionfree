@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
             where: { id },
             include: {
   
-                InstitutionRating: {
+                rating: {
 
                     select: {
                         evidence: true,
@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest) {
             where: { id },
             data: dataToUpdate,
             include: {
-                InstitutionRating: true
+                rating: true
             },
         });
 
