@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { RatingCategory } from "@/types/interfaces";
 import { useRouter } from "next/navigation";
 
-export default function RateNomineePage({
+export default function RateInstitutionPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -12,8 +12,8 @@ export default function RateNomineePage({
   const router = useRouter();
   const [categories, setCategories] = useState<RatingCategory[]>([]);
   const [ratings, setRatings] = useState<{ ratingCategoryId: number; score: number }[]>([]);
-  const [nomineeName, setNomineeName] = useState<string>("");
-  const [nomineeId, setNomineeId] = useState<number | null>(null);
+  const [institutionName, setInstitutionName] = useState<string>("");
+  const [institutionId, setInstitutionId] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,9 +22,9 @@ export default function RateNomineePage({
       try {
         const { id } = await params;
         const parsedId = parseInt(id, 10);
-        setNomineeId(parsedId);
+        setInstitutionId(parsedId);
 
-        // Fetch categories and nominee details once params are resolved
+        // Fetch categories and institution details once params are resolved
         const fetchCategories = async () => {
           const response = await fetch("/api/ratingcategories/");
           if (!response.ok) {
@@ -34,17 +34,17 @@ export default function RateNomineePage({
           setCategories(data.data);
         };
 
-        const fetchNomineeDetails = async () => {
-          const response = await fetch(`/api/nominees/${parsedId}`);
+        const fetchInstitutionDetails = async () => {
+          const response = await fetch(`/api/institutions/${parsedId}`);
           if (!response.ok) {
-            throw new Error("Failed to fetch nominee details.");
+            throw new Error("Failed to fetch institution details.");
           }
           const data = await response.json();
-          setNomineeName(data.name);
+          setInstitutionName(data.name);
         };
 
         await fetchCategories();
-        await fetchNomineeDetails();
+        await fetchInstitutionDetails();
         setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -79,7 +79,7 @@ export default function RateNomineePage({
       })),
     };
 
-    const response = await fetch(`/api/nominees/${nomineeId}/rate/`, {
+    const response = await fetch(`/api/institutions/${institutionId}/rate/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export default function RateNomineePage({
     });
 
     if (response.ok) {
-      router.push(`/nominees/${nomineeId}/`);
+      router.push(`/institutions/${institutionId}/`);
     } else {
       console.error("Error submitting ratings:", await response.json());
     }
@@ -114,14 +114,14 @@ export default function RateNomineePage({
     );
   }
 
-  if (!nomineeId) {
-    return <p>Invalid nominee ID</p>;
+  if (!institutionId) {
+    return <p>Invalid institution ID</p>;
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl text-gray-900 font-bold mb-8">
-        Rate Nominee #{nomineeName}
+        Rate Institution #{institutionName}
       </h1>
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-6">

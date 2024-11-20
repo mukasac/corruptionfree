@@ -33,6 +33,9 @@ export default function RootLayout({
                   <Link href="/nominees" className="hover:text-gray-300 transition-colors">
                     Nominees
                   </Link>
+                  <Link href="/institutions" className="hover:text-gray-300 transition-colors">
+                    Institutions
+                  </Link>
                   <Link href="/leaderboard" className="hover:text-gray-300 transition-colors">
                     Leaderboard
                   </Link>
@@ -45,6 +48,13 @@ export default function RootLayout({
                              hover:bg-gray-100 transition-colors"
                   >
                     Rate Official
+                  </Link>
+                  <Link 
+                    href="/rate-institution"
+                    className="bg-white text-slate-900 px-4 py-2 rounded-md font-medium 
+                             hover:bg-gray-100 transition-colors"
+                  >
+                    Rate Institution
                   </Link>
                 </div>
 

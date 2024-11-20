@@ -2,13 +2,10 @@
 import { useState, useEffect } from "react";
 import {
   RatingCategory,
-  District,
-  Position,
-  Institution,
 } from "@/types/interfaces";
 import { useRouter } from "next/navigation";
 
-export default function CreateNomineePage() {
+export default function CreateInstitutionPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<RatingCategory[]>([]);
   const [ratings, setRatings] = useState<
@@ -19,32 +16,14 @@ export default function CreateNomineePage() {
       evidence: string;
     }[]
   >([]);
-  const [nomineeName, setNomineeName] = useState<string>("");
-  const [nomineeEvidence, setNomineeEvidence] = useState<string>("");
-  const [institutions, setInstitutions] = useState<Institution[]>([]);
-  const [positions, setPositions] = useState<Position[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [institutionId, setInstitutionId] = useState<number | null>(null);
-  const [positionId, setPositionId] = useState<number | null>(null);
-  const [districtId, setDistrictId] = useState<number | null>(null);
+  const [institutionName, setInstitutionName] = useState<string>("");
+  const [institutionEvidence, setInstitutionEvidence] = useState<string>("");
 
   useEffect(() => {
     async function fetchData() {
       const categoriesRes = await fetch("/api/ratingcategories/");
       const categoriesData = await categoriesRes.json();
       setCategories(categoriesData.data);
-
-      const institutionsRes = await fetch("/api/institutions/");
-      const institutionsData = await institutionsRes.json();
-      setInstitutions(await institutionsData.data);
-
-      const positionsRes = await fetch("/api/positions/");
-      const positionsData = await positionsRes.json();
-      setPositions(await positionsData.data);
-
-      const districtsRes = await fetch("/api/districts/");
-      const districtsData = await districtsRes.json();
-      setDistricts(await districtsData.data);
     }
 
     fetchData();
@@ -76,22 +55,19 @@ export default function CreateNomineePage() {
     e.preventDefault();
 
     const payload = {
-      nomineeData: {
-        name: nomineeName,
-        institutionId: institutionId,
-        positionId: positionId,
-        districtId: districtId,
-        evidence: nomineeEvidence, // Replace with actual evidence
+      institutionData: {
+        name: institutionName,
+        evidence: institutionEvidence, // Replace with actual evidence
       },
       ratings: ratings.map((rating) => ({
         userId: 1, // Example user ID; replace with actual value
         ...rating,
         severity: Math.floor(Math.random() * 5) + 1, // Dummy severity value
-        evidence: nomineeEvidence, // Replace with actual evidence
+        evidence: institutionEvidence, // Replace with actual evidence
       })),
     };
 
-    const response = await fetch("/api/nominees/rate/", {
+    const response = await fetch("/api/institutions/rate/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -100,16 +76,16 @@ export default function CreateNomineePage() {
     });
 
     if (response.ok) {
-      router.push("/nominees");
+      router.push("/institutions");
     } else {
-      console.error("Error submitting nominee:", await response.json());
+      console.error("Error submitting institution:", await response.json());
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl text-gray-700 font-bold mb-8">
-        Create New Nominee
+        Create New Institution
       </h1>
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="bg-white rounded-lg p-6 shadow-md space-y-4">
@@ -120,57 +96,13 @@ export default function CreateNomineePage() {
             Name:
             <input
               type="text"
-              value={nomineeName}
-              onChange={(e) => setNomineeName(e.target.value)}
+              value={institutionName}
+              onChange={(e) => setInstitutionName(e.target.value)}
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Institution:
-            <select
-              value={institutionId || ""}
-              onChange={(e) => setInstitutionId(Number(e.target.value))}
-              required
-            >
-              <option value="">Select Institution</option>
-              {institutions.map((institution) => (
-                <option key={institution.id} value={institution.id}>
-                  {institution.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            Position:
-            <select
-              value={positionId || ""}
-              onChange={(e) => setPositionId(Number(e.target.value))}
-              required
-            >
-              <option value="">Select Position</option>
-              {positions.map((position) => (
-                <option key={position.id} value={position.id}>
-                  {position.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm font-medium text-gray-700">
-            District:
-            <select
-              value={districtId || ""}
-              onChange={(e) => setDistrictId(Number(e.target.value))}
-              required
-            >
-              <option value="">Select District</option>
-              {districts.map((district) => (
-                <option key={district.id} value={district.id}>
-                  {district.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Evidence
@@ -179,8 +111,8 @@ export default function CreateNomineePage() {
               required
               className="mt-1 block w-full text-gray-700 rounded-md border-gray-300 shadow focus:border-blue-500 focus:ring-blue-500"
               rows={4}
-              value={nomineeEvidence}
-              onChange={(e) => setNomineeEvidence(e.target.value)}
+              value={institutionEvidence}
+              onChange={(e) => setInstitutionEvidence(e.target.value)}
             />
           </div>
         </div>
@@ -226,7 +158,7 @@ export default function CreateNomineePage() {
                       key={score}
                       type="button"
                       onClick={() =>
-                        handleRate(category.id, score, 2, nomineeEvidence)
+                        handleRate(category.id, score, 2, institutionEvidence)
                       }
                       className={`px-3 py-1 text-gray-600 rounded ${
                         ratings.find(
@@ -251,7 +183,7 @@ export default function CreateNomineePage() {
           type="submit"
           className="w-full bg-blue-600 text-white py-4 px-8 rounded-md font-medium hover:bg-blue-700 transition-colors"
         >
-          Submit Nominee
+          Submit Institution
         </button>
       </form>
     </div>
