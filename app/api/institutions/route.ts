@@ -22,3 +22,19 @@ export async function GET(req: NextRequest) {
   
     return NextResponse.json(result);
   }
+
+  export async function POST(req: NextRequest) {
+    try {
+        const { name} = await req.json();
+
+        const newInstitution = await prisma.institution.create({
+            data: {
+                name,
+            }
+        });
+
+        return NextResponse.json(newInstitution, { status: 201 });
+    } catch (error) {
+        return NextResponse.json({ error: 'Error creating institution' + error }, { status: 500 });
+    }
+}
