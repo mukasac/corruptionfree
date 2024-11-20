@@ -1,5 +1,4 @@
 // src/types/interfaces.ts
-
 export interface Rating {
     id: number;
     userId: number;
@@ -10,6 +9,30 @@ export interface Rating {
     evidence: string | null;
     createdAt: string;
     ratingCategory: RatingCategory;
+}
+
+export interface Comment {
+    id: number;
+    userId: number;
+    nomineeId: number;
+    content: string;
+    createdAt: string;
+    user: {
+        name: string;
+        avatar?: string;
+    };
+}
+
+export interface InstitutionComment {
+    id: number;
+    userId: number;
+    institutionId: number;
+    content: string;
+    createdAt: string;
+    user: {
+        name: string;
+        avatar?: string;
+    };
 }
 
 export interface InstitutionRating {
@@ -46,6 +69,8 @@ export interface Institution {
     name: string;
     status: boolean;
     rating: InstitutionRating[];
+    comments?: InstitutionComment[];
+    avatar?: string;
     createdAt: string;
 }
 
@@ -64,6 +89,8 @@ export interface Nominee {
     districtId: number;
     status: boolean;
     evidence: string | null;
+    avatar?: string;
+    comments?: Comment[];
     createdAt: string;
     rating: Rating[];
     position: Position;
@@ -82,5 +109,12 @@ export interface InstitutionResponse {
     count: number;
     pages: number;
     currentPage: number;
-    data: Nominee[];
+    data: Institution[];
+}
+
+export interface CommentResponse {
+    count: number;
+    pages: number;
+    currentPage: number;
+    data: Comment[] | InstitutionComment[];
 }

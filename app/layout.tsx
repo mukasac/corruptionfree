@@ -25,38 +25,25 @@ export default function RootLayout({
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between h-16 items-center">
                 <Link href="/" className="flex items-center space-x-2">
-                  <span className="text-xl font-bold">Corruption Awards</span>
+                  <span className="text-xl font-bold">Corruption Free Kenya</span>
                 </Link>
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8">
-                  <Link href="/nominees" className="hover:text-gray-300 transition-colors">
-                    Nominees
-                  </Link>
-                  <Link href="/institutions" className="hover:text-gray-300 transition-colors">
-                    Institutions
-                  </Link>
-                  <Link href="/leaderboard" className="hover:text-gray-300 transition-colors">
-                    Leaderboard
-                  </Link>
-                  <Link href="/stats" className="hover:text-gray-300 transition-colors">
-                    Statistics
-                  </Link>
-                  <Link 
-                    href="/nominate"
-                    className="bg-white text-slate-900 px-4 py-2 rounded-md font-medium 
-                             hover:bg-gray-100 transition-colors"
-                  >
-                    Rate Official
-                  </Link>
-                  <Link 
-                    href="/rate-institution"
-                    className="bg-white text-slate-900 px-4 py-2 rounded-md font-medium 
-                             hover:bg-gray-100 transition-colors"
-                  >
-                    Rate Institution
-                  </Link>
-                </div>
+  <Link href="/nominees" className="hover:text-gray-300 transition-colors">
+    Officials
+  </Link>
+  <Link href="/institutions" className="hover:text-gray-300 transition-colors">
+    Institutions
+  </Link>
+  <Link 
+    href="/submit"
+    className="bg-white text-slate-900 px-4 py-2 rounded-md font-medium 
+             hover:bg-gray-100 transition-colors"
+  >
+    Submit
+  </Link>
+</div>
 
                 {/* Mobile Menu Button */}
                 <button className="md:hidden p-2" aria-label="Menu">
@@ -98,22 +85,18 @@ export default function RootLayout({
                   <ul className="space-y-2">
                     <li>
                       <Link href="/nominees" className="text-gray-300 hover:text-white transition-colors">
-                        Browse Nominees
+                        Browse Officials
                       </Link>
                     </li>
                     <li>
                       <Link href="/leaderboard" className="text-gray-300 hover:text-white transition-colors">
-                        View Leaderboard
+                        Awards
                       </Link>
                     </li>
-                    <li>
-                      <Link href="/stats" className="text-gray-300 hover:text-white transition-colors">
-                        Statistics
-                      </Link>
-                    </li>
+                    
                     <li>
                       <Link href="/nominate" className="text-gray-300 hover:text-white transition-colors">
-                        Rate Official
+                        Submit
                       </Link>
                     </li>
                   </ul>
