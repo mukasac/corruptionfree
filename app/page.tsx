@@ -1,6 +1,5 @@
 // app/page.tsx
 "use client";
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ChevronRight, Building, Users, Award, BarChart3, AlertTriangle, TrendingUp, Search, X } from 'lucide-react';
@@ -97,13 +96,6 @@ export default function Home() {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
-  const stats = [
-    { label: "Corrupt Officials", value: "2,547" },
-    { label: "Institutions", value: "312" },
-    { label: "Total Ratings", value: "15,832" },
-    { label: "Active Users", value: "8,945" }
-  ];
-
   useEffect(() => {
     setTopNominees(MOCK_NOMINEES);
     setTopInstitutions(MOCK_INSTITUTIONS);
@@ -151,7 +143,7 @@ export default function Home() {
 
   return (
     <>
-      {/* Hero Section with Search */}
+      {/* Hero Section */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white relative">
         <div className="max-w-7xl mx-auto px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
@@ -239,12 +231,14 @@ export default function Home() {
               </div>
             )}
 
-            <div className="flex gap-4">
-              <a href="/nominate" className="bg-white text-slate-900 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
-                Rate Official
-              </a>
-              <a href="/rate-institution" className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white/10 transition">
-                Rate Institution
+            {/* Single Report Button */}
+            <div className="flex">
+              <a 
+                href="/submit" 
+                className="bg-red-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+              >
+                <AlertTriangle className="w-5 h-5" />
+                Report Corruption
               </a>
             </div>
           </div>
@@ -255,13 +249,85 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 -mt-10 mb-16 relative z-10">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl font-bold text-slate-900">{stat.value}</div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-              </div>
-            ))}
+            <div className="text-center">
+              <div className="text-3xl font-bold text-slate-900">2,547</div>
+              <div className="text-sm text-gray-600">Corrupt Officials</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-slate-900">312</div>
+              <div className="text-sm text-gray-600">Institutions</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-slate-900">15,832</div>
+              <div className="text-sm text-gray-600">Total Ratings</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-slate-900">8,945</div>
+              <div className="text-sm text-gray-600">Active Users</div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Features Grid */}
+      <div className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 lg:px-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Report Corruption Card */}
+          <Card className="hover:shadow-lg transition bg-gradient-to-br from-red-50 to-white">
+            <CardHeader>
+              <AlertTriangle className="w-12 h-12 text-red-600" />
+              <CardTitle>Report Corruption</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Submit evidence-based reports about corrupt officials and institutions. Help expose corruption in Kenya.
+              </p>
+              <a href="/submit" className="text-slate-900 font-medium flex items-center group">
+                Start Reporting
+                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+              </a>
+            </CardContent>
+          </Card>
+
+          {/* Leaderboard Card */}
+          <Card className="hover:shadow-lg transition">
+            <CardHeader>
+              <Award className="w-12 h-12 text-purple-600" />
+              <CardTitle>Corruption Leaderboard</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                View the most corrupt officials and institutions ranked by evidence and citizen ratings.
+              </p>
+              <a href="/leaderboard" className="text-slate-900 font-medium flex items-center group">
+                View Rankings
+                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+              </a>
+            </CardContent>
+          </Card>
+
+          {/* Browse Card */}
+          <Card className="hover:shadow-lg transition">
+            <CardHeader>
+              <Users className="w-12 h-12 text-blue-600" />
+              <CardTitle>Browse Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Explore detailed corruption metrics and evidence for both officials and institutions.
+              </p>
+              <div className="flex gap-4">
+                <a href="/nominees" className="text-slate-900 font-medium flex items-center group">
+                  Officials
+                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+                </a>
+                <a href="/institutions" className="text-slate-900 font-medium flex items-center group">
+                  Institutions
+                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
+                </a>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
@@ -272,7 +338,7 @@ export default function Home() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-slate-900">Most Corrupt Officials</h2>
-              <a href="/nominees" className="text-blue-600 hover:underline">View All</a>
+              <a href="/leaderboard?tab=officials" className="text-blue-600 hover:underline">View All</a>
             </div>
             <div className="space-y-4">
               {isLoading ? (
@@ -305,7 +371,7 @@ export default function Home() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-slate-900">Most Corrupt Institutions</h2>
-              <a href="/institutions" className="text-blue-600 hover:underline">View All</a>
+              <a href="/leaderboard?tab=institutions" className="text-blue-600 hover:underline">View All</a>
             </div>
             <div className="space-y-4">
               {isLoading ? (
@@ -330,93 +396,6 @@ export default function Home() {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Card className="hover:shadow-lg transition">
-            <CardHeader>
-              <AlertTriangle className="w-12 h-12 text-red-600" />
-              <CardTitle>Report Corruption</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">Submit evidence-based reports about corrupt officials and institutions.</p>
-              <a href="/nominate" className="text-slate-900 font-medium flex items-center group">
-                Start Reporting
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition">
-            <CardHeader>
-              <Users className="w-12 h-12 text-blue-600" />
-              <CardTitle>Browse Nominees</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">Explore detailed corruption metrics and evidence for rated officials.</p>
-              <a href="/nominees" className="text-slate-900 font-medium flex items-center group">
-                View Officials
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition">
-            <CardHeader>
-              <Building className="w-12 h-12 text-green-600" />
-              <CardTitle>Rate Institutions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">Evaluate government institutions and track their corruption levels.</p>
-              <a href="/institutions" className="text-slate-900 font-medium flex items-center group">
-                View Institutions
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition">
-            <CardHeader>
-              <Award className="w-12 h-12 text-purple-600" />
-              <CardTitle>Leaderboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">See the most corrupt officials and institutions ranked by evidence.</p>
-              <a href="/leaderboard" className="text-slate-900 font-medium flex items-center group">
-                View Rankings
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition">
-            <CardHeader>
-              <BarChart3 className="w-12 h-12 text-yellow-600" />
-              <CardTitle>Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">Analyze corruption trends and patterns across Kenya.</p>
-              <a href="/stats" className="text-slate-900 font-medium flex items-center group">
-                View Stats
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition">
-            <CardHeader>
-              <TrendingUp className="w-12 h-12 text-orange-600" />
-              <CardTitle>Trending Cases</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">Stay updated with the latest corruption cases and ratings.</p>
-              <a href="/trending" className="text-slate-900 font-medium flex items-center group">
-                View Trending
-                <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </>

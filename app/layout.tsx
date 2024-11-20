@@ -1,4 +1,4 @@
-// src/app/layout.tsx
+// app/layout.tsx
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import Link from "next/link"
@@ -30,20 +30,23 @@ export default function RootLayout({
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center space-x-8">
-  <Link href="/nominees" className="hover:text-gray-300 transition-colors">
-    Officials
-  </Link>
-  <Link href="/institutions" className="hover:text-gray-300 transition-colors">
-    Institutions
-  </Link>
-  <Link 
-    href="/submit"
-    className="bg-white text-slate-900 px-4 py-2 rounded-md font-medium 
-             hover:bg-gray-100 transition-colors"
-  >
-    Submit
-  </Link>
-</div>
+                  <Link href="/nominees" className="hover:text-gray-300 transition-colors">
+                    Officials
+                  </Link>
+                  <Link href="/institutions" className="hover:text-gray-300 transition-colors">
+                    Institutions
+                  </Link>
+                  <Link href="/leaderboard" className="hover:text-gray-300 transition-colors">
+                    Leaderboard
+                  </Link>
+                  <Link 
+                    href="/submit"
+                    className="bg-white text-slate-900 px-4 py-2 rounded-md font-medium 
+                             hover:bg-gray-100 transition-colors"
+                  >
+                    Submit
+                  </Link>
+                </div>
 
                 {/* Mobile Menu Button */}
                 <button className="md:hidden p-2" aria-label="Menu">
@@ -90,10 +93,9 @@ export default function RootLayout({
                     </li>
                     <li>
                       <Link href="/leaderboard" className="text-gray-300 hover:text-white transition-colors">
-                        Awards
+                        Leaderboard
                       </Link>
                     </li>
-                    
                     <li>
                       <Link href="/nominate" className="text-gray-300 hover:text-white transition-colors">
                         Submit
