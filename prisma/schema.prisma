@@ -50,7 +50,7 @@ model Institution {
   name     String
   nominees Nominee[]
 
-  InstitutionRating InstitutionRating[]
+  rating InstitutionRating[]
   createdAt DateTime            @default(now())
 }
 

@@ -17,8 +17,19 @@ export async function GET(req: NextRequest) {
         createdAt: { min: new Date(), max: new Date() },
       },
     });
+    //fetch related modesl
+    const include = {
+      rating: {
+
+          select: {
+              evidence: true,
+              severity: true,
+              score: true, ratingCategory: true
+          }
+      }
+  };
   
-    const result = await paginate(prisma.institution, { page, limit }, filters);
+    const result = await paginate(prisma.institution, { page, limit }, filters, include);
   
     return NextResponse.json(result);
   }

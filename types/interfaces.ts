@@ -12,6 +12,18 @@ export interface Rating {
     ratingCategory: RatingCategory;
 }
 
+export interface InstitutionRating {
+    id: number;
+    userId: number;
+    nomineeId: number;
+    ratingCategoryId: number;
+    score: number;
+    severity: number;
+    evidence: string | null;
+    createdAt: string;
+    ratingCategory: RatingCategory;
+}
+
 export interface RatingCategory {
     id: number;
     keyword: string;
@@ -32,6 +44,7 @@ export interface Position {
 export interface Institution {
     id: number;
     name: string;
+    rating: InstitutionRating[];
     createdAt: string;
 }
 
@@ -58,6 +71,13 @@ export interface Nominee {
 }
 
 export interface NomineeResponse {
+    count: number;
+    pages: number;
+    currentPage: number;
+    data: Nominee[];
+}
+
+export interface InstitutionResponse {
     count: number;
     pages: number;
     currentPage: number;
