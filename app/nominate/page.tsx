@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from "react";
 import {
   RatingCategory,
@@ -25,6 +26,12 @@ interface NewNominee {
   position: string;
   institution: string;
   district: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: string;
 }
 
 export default function CreateNomineePage() {
@@ -79,10 +86,10 @@ export default function CreateNomineePage() {
           districtsRes.json()
         ]);
 
-        setCategories(categoriesData.data);
-        setInstitutions(institutionsData.data);
-        setPositions(positionsData.data);
-        setDistricts(districtsData.data);
+        if (categoriesData.success) setCategories(categoriesData.data);
+        if (institutionsData.success) setInstitutions(institutionsData.data);
+        if (positionsData.success) setPositions(positionsData.data);
+        if (districtsData.success) setDistricts(districtsData.data);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load form data. Please refresh the page.");
@@ -107,10 +114,10 @@ export default function CreateNomineePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: newNominee.position }),
         });
-        if (posRes.ok) {
-          const data = await posRes.json();
-          setPositions(prev => [...prev, data]);
-          newPositionId = data.id;
+        const posData: ApiResponse<Position> = await posRes.json();
+        if (posRes.ok && posData.success && posData.data) {
+          setPositions(prev => [...prev, posData.data!]);
+          newPositionId = posData.data.id;
         }
       }
 
@@ -120,10 +127,10 @@ export default function CreateNomineePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: newNominee.institution }),
         });
-        if (instRes.ok) {
-          const data = await instRes.json();
-          setInstitutions(prev => [...prev, data]);
-          newInstitutionId = data.id;
+        const instData: ApiResponse<Institution> = await instRes.json();
+        if (instRes.ok && instData.success && instData.data) {
+          setInstitutions(prev => [...prev, instData.data!]);
+          newInstitutionId = instData.data.id;
         }
       }
 
@@ -133,10 +140,10 @@ export default function CreateNomineePage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: newNominee.district }),
         });
-        if (distRes.ok) {
-          const data = await distRes.json();
-          setDistricts(prev => [...prev, data]);
-          newDistrictId = data.id;
+        const distData: ApiResponse<District> = await distRes.json();
+        if (distRes.ok && distData.success && distData.data) {
+          setDistricts(prev => [...prev, distData.data!]);
+          newDistrictId = distData.data.id;
         }
       }
 
@@ -185,14 +192,15 @@ export default function CreateNomineePage() {
         body: JSON.stringify(newInstitution),
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setInstitutions(prev => [...prev, data]);
-        setInstitutionId(data.id);
+      const result: ApiResponse<Institution> = await response.json();
+      
+      if (response.ok && result.success && result.data) {
+        setInstitutions(prev => [...prev, result.data!]);
+        setInstitutionId(result.data.id);
         setShowNewInstitution(false);
         setNewInstitution({ name: '' });
       } else {
-        throw new Error('Failed to add institution');
+        throw new Error(result.error || 'Failed to add institution');
       }
     } catch (error) {
       console.error('Error adding institution:', error);
@@ -211,14 +219,15 @@ export default function CreateNomineePage() {
         body: JSON.stringify(newPosition),
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setPositions(prev => [...prev, data]);
-        setPositionId(data.id);
+      const result: ApiResponse<Position> = await response.json();
+      
+      if (response.ok && result.success && result.data) {
+        setPositions(prev => [...prev, result.data!]);
+        setPositionId(result.data.id);
         setShowNewPosition(false);
         setNewPosition({ name: '' });
       } else {
-        throw new Error('Failed to add position');
+        throw new Error(result.error || 'Failed to add position');
       }
     } catch (error) {
       console.error('Error adding position:', error);
@@ -237,14 +246,15 @@ export default function CreateNomineePage() {
         body: JSON.stringify(newDistrict),
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setDistricts(prev => [...prev, data]);
-        setDistrictId(data.id);
+      const result: ApiResponse<District> = await response.json();
+      
+      if (response.ok && result.success && result.data) {
+        setDistricts(prev => [...prev, result.data!]);
+        setDistrictId(result.data.id);
         setShowNewDistrict(false);
         setNewDistrict({ name: '' });
       } else {
-        throw new Error('Failed to add district');
+        throw new Error(result.error || 'Failed to add district');
       }
     } catch (error) {
       console.error('Error adding district:', error);
@@ -267,7 +277,7 @@ export default function CreateNomineePage() {
           evidence: nomineeEvidence,
         },
         ratings: ratings.map((rating) => ({
-          userId: 1,
+          userId: 1, // This should be handled properly with authentication
           ...rating,
           severity: Math.floor(Math.random() * 5) + 1,
         })),
@@ -281,8 +291,10 @@ export default function CreateNomineePage() {
         body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit nominee');
+      const result: ApiResponse<any> = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to submit nominee');
       }
 
       router.push("/nominees");

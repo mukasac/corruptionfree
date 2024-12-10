@@ -1,145 +1,58 @@
 // app/page.tsx
 "use client";
-import React, { useEffect, useState } from 'react';
+
+import React from 'react';
+import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ChevronRight, Building, Users, Award, BarChart3, AlertTriangle, TrendingUp, Search, X } from 'lucide-react';
-
-interface Rating {
-  score: number;
-  ratingCategory: {
-    name: string;
-    weight: number;
-  };
-}
-
-interface Nominee {
-  id: number;
-  name: string;
-  position: {
-    name: string;
-  };
-  institution: {
-    name: string;
-  };
-  rating: Rating[];
-}
-
-interface Institution {
-  id: number;
-  name: string;
-  rating: Rating[];
-}
-
-const MOCK_NOMINEES = [
-  {
-    id: 1,
-    name: "John Doe",
-    position: { name: "County Executive" },
-    institution: { name: "Nairobi County" },
-    rating: [{ score: 4.5, ratingCategory: { name: "Bribery", weight: 30 } }]
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    position: { name: "Director" },
-    institution: { name: "Ministry of Finance" },
-    rating: [{ score: 4.2, ratingCategory: { name: "Bribery", weight: 30 } }]
-  },
-  {
-    id: 3,
-    name: "Peter Kamau",
-    position: { name: "Chief Officer" },
-    institution: { name: "KRA" },
-    rating: [{ score: 4.0, ratingCategory: { name: "Bribery", weight: 30 } }]
-  },
-  {
-    id: 4,
-    name: "Mary Wanjiku",
-    position: { name: "Minister" },
-    institution: { name: "Ministry of Education" },
-    rating: [{ score: 3.9, ratingCategory: { name: "Bribery", weight: 30 } }]
-  }
-];
-
-const MOCK_INSTITUTIONS = [
-  {
-    id: 1,
-    name: "Kenya Revenue Authority",
-    rating: [{ score: 4.7, ratingCategory: { name: "Bribery", weight: 30 } }]
-  },
-  {
-    id: 2,
-    name: "Ministry of Health",
-    rating: [{ score: 4.5, ratingCategory: { name: "Bribery", weight: 30 } }]
-  },
-  {
-    id: 3,
-    name: "Kenya Police Service",
-    rating: [{ score: 4.3, ratingCategory: { name: "Bribery", weight: 30 } }]
-  },
-  {
-    id: 4,
-    name: "Nairobi County Government",
-    rating: [{ score: 4.1, ratingCategory: { name: "Bribery", weight: 30 } }]
-  }
-];
+import { ChevronRight, Building, Users, Award, AlertTriangle, Search, X } from 'lucide-react';
+import { useSearch } from '@/hooks/useApi';
+import { useStats } from '@/hooks/useApi';
 
 export default function Home() {
-  const [topNominees, setTopNominees] = useState<Nominee[]>([]);
-  const [topInstitutions, setTopInstitutions] = useState<Institution[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<{
-    nominees: Nominee[];
-    institutions: Institution[];
-  }>({ nominees: [], institutions: [] });
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [showResults, setShowResults] = React.useState(false);
+  const { results: searchResults, loading: isSearching } = useSearch(searchQuery);
+  const { data: statsData, loading: isLoading, error } = useStats();
 
-  useEffect(() => {
-    setTopNominees(MOCK_NOMINEES);
-    setTopInstitutions(MOCK_INSTITUTIONS);
-    setIsLoading(false);
-  }, []);
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    if (query.length < 2) {
-      setSearchResults({ nominees: [], institutions: [] });
-      setShowResults(false);
-      return;
-    }
-
-    setIsSearching(true);
-    setShowResults(true);
-
-    const filteredNominees = MOCK_NOMINEES.filter(nominee => 
-      nominee.name.toLowerCase().includes(query.toLowerCase()) ||
-      nominee.position.name.toLowerCase().includes(query.toLowerCase()) ||
-      nominee.institution.name.toLowerCase().includes(query.toLowerCase())
-    );
-
-    const filteredInstitutions = MOCK_INSTITUTIONS.filter(institution =>
-      institution.name.toLowerCase().includes(query.toLowerCase())
-    );
-
-    setSearchResults({ 
-      nominees: filteredNominees,
-      institutions: filteredInstitutions
-    });
-    setIsSearching(false);
+  const calculateAverageRating = (ratings: any[]) => {
+    if (!ratings?.length) return 0;
+    return (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1);
   };
 
   const clearSearch = () => {
     setSearchQuery('');
-    setSearchResults({ nominees: [], institutions: [] });
     setShowResults(false);
   };
 
-  const calculateAverageRating = (ratings: Rating[]) => {
-    if (!ratings.length) return 0;
-    return (ratings.reduce((acc, curr) => acc + curr.score, 0) / ratings.length).toFixed(1);
-  };
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="bg-red-50 border border-red-400 text-red-700 p-4 rounded-lg">
+          Failed to load data. Please try again later.
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || !statsData?.stats) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-8">
+          <div className="h-64 bg-gray-200 rounded-lg"></div>
+          <div className="grid grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -172,58 +85,57 @@ export default function Home() {
                 placeholder="Search for officials or institutions..."
                 className="block w-full pl-10 pr-10 py-4 rounded-lg bg-white text-slate-900 placeholder-gray-400"
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowResults(e.target.value.length >= 2);
+                }}
               />
             </div>
 
             {/* Search Results */}
-            {showResults && searchQuery.length >= 2 && (
+            {showResults && searchResults && (
               <div className="absolute left-0 right-0 max-w-3xl mx-auto px-4 z-50">
                 <div className="bg-white rounded-lg shadow-xl text-slate-900 max-h-96 overflow-y-auto">
                   {isSearching ? (
                     <div className="p-4 text-center">Searching...</div>
+                  ) : searchResults.nominees?.length === 0 && searchResults.institutions?.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">No results found</div>
                   ) : (
                     <>
-                      {searchResults.nominees.length === 0 && searchResults.institutions.length === 0 ? (
-                        <div className="p-4 text-center text-gray-500">No results found</div>
-                      ) : (
-                        <>
-                          {searchResults.nominees.length > 0 && (
-                            <div className="p-4">
-                              <h3 className="font-semibold text-gray-700 mb-3">Officials</h3>
-                              <div className="space-y-2">
-                                {searchResults.nominees.map(nominee => (
-                                  <a
-                                    key={nominee.id}
-                                    href={`/nominees/${nominee.id}`}
-                                    className="block p-3 hover:bg-gray-50 rounded border border-gray-100"
-                                  >
-                                    <div className="font-medium">{nominee.name}</div>
-                                    <div className="text-sm text-gray-600">
-                                      {nominee.position.name} at {nominee.institution.name}
-                                    </div>
-                                  </a>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          {searchResults.institutions.length > 0 && (
-                            <div className="p-4 border-t">
-                              <h3 className="font-semibold text-gray-700 mb-3">Institutions</h3>
-                              <div className="space-y-2">
-                                {searchResults.institutions.map(institution => (
-                                  <a
-                                    key={institution.id}
-                                    href={`/institutions/${institution.id}`}
-                                    className="block p-3 hover:bg-gray-50 rounded border border-gray-100"
-                                  >
-                                    <div className="font-medium">{institution.name}</div>
-                                  </a>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </>
+                      {searchResults.nominees?.length > 0 && (
+                        <div className="p-4">
+                          <h3 className="font-semibold text-gray-700 mb-3">Officials</h3>
+                          <div className="space-y-2">
+                            {searchResults.nominees.map(nominee => (
+                              <Link
+                                key={nominee.id}
+                                href={`/nominees/${nominee.id}`}
+                                className="block p-3 hover:bg-gray-50 rounded border border-gray-100"
+                              >
+                                <div className="font-medium">{nominee.name}</div>
+                                <div className="text-sm text-gray-600">
+                                  {nominee.position?.name} at {nominee.institution?.name}
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {searchResults.institutions?.length > 0 && (
+                        <div className="p-4 border-t">
+                          <h3 className="font-semibold text-gray-700 mb-3">Institutions</h3>
+                          <div className="space-y-2">
+                            {searchResults.institutions.map(institution => (
+                              <Link
+                                key={institution.id}
+                                href={`/institutions/${institution.id}`}
+                                className="block p-3 hover:bg-gray-50 rounded border border-gray-100"
+                              >
+                                <div className="font-medium">{institution.name}</div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </>
                   )}
@@ -231,16 +143,14 @@ export default function Home() {
               </div>
             )}
 
-            {/* Single Report Button */}
-            <div className="flex">
-              <a 
-                href="/submit" 
-                className="bg-red-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
-              >
-                <AlertTriangle className="w-5 h-5" />
-                Report Corruption
-              </a>
-            </div>
+            {/* Report Button */}
+            <Link 
+              href="/submit" 
+              className="bg-red-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2 w-fit"
+            >
+              <AlertTriangle className="w-5 h-5" />
+              Report Corruption
+            </Link>
           </div>
         </div>
       </div>
@@ -250,20 +160,28 @@ export default function Home() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <div className="text-3xl font-bold text-slate-900">2,547</div>
+              <div className="text-3xl font-bold text-slate-900">
+                {statsData.stats.nomineeCount.toLocaleString()}
+              </div>
               <div className="text-sm text-gray-600">Corrupt Officials</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-slate-900">312</div>
+              <div className="text-3xl font-bold text-slate-900">
+                {statsData.stats.institutionCount.toLocaleString()}
+              </div>
               <div className="text-sm text-gray-600">Institutions</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-slate-900">15,832</div>
+              <div className="text-3xl font-bold text-slate-900">
+                {statsData.stats.totalRatings.toLocaleString()}
+              </div>
               <div className="text-sm text-gray-600">Total Ratings</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-slate-900">8,945</div>
-              <div className="text-sm text-gray-600">Active Users</div>
+              <div className="text-3xl font-bold text-slate-900">
+                {(statsData.stats.nomineeCount + statsData.stats.institutionCount).toLocaleString()}
+              </div>
+              <div className="text-sm text-gray-600">Total Entities</div>
             </div>
           </div>
         </div>
@@ -272,7 +190,7 @@ export default function Home() {
       {/* Features Grid */}
       <div className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Report Corruption Card */}
+          {/* Report Card */}
           <Card className="hover:shadow-lg transition bg-gradient-to-br from-red-50 to-white">
             <CardHeader>
               <AlertTriangle className="w-12 h-12 text-red-600" />
@@ -280,12 +198,12 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
-                Submit evidence-based reports about corrupt officials and institutions. Help expose corruption in Kenya.
+                Submit evidence-based reports about corrupt officials and institutions.
               </p>
-              <a href="/submit" className="text-slate-900 font-medium flex items-center group">
+              <Link href="/submit" className="text-slate-900 font-medium flex items-center group">
                 Start Reporting
                 <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
+              </Link>
             </CardContent>
           </Card>
 
@@ -297,12 +215,12 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
-                View the most corrupt officials and institutions ranked by evidence and citizen ratings.
+                View the most corrupt officials and institutions ranked by evidence.
               </p>
-              <a href="/leaderboard" className="text-slate-900 font-medium flex items-center group">
+              <Link href="/leaderboard" className="text-slate-900 font-medium flex items-center group">
                 View Rankings
                 <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-              </a>
+              </Link>
             </CardContent>
           </Card>
 
@@ -314,17 +232,17 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
-                Explore detailed corruption metrics and evidence for both officials and institutions.
+                Explore detailed corruption metrics for officials and institutions.
               </p>
               <div className="flex gap-4">
-                <a href="/nominees" className="text-slate-900 font-medium flex items-center group">
+                <Link href="/nominees" className="text-slate-900 font-medium flex items-center group">
                   Officials
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-                </a>
-                <a href="/institutions" className="text-slate-900 font-medium flex items-center group">
+                </Link>
+                <Link href="/institutions" className="text-slate-900 font-medium flex items-center group">
                   Institutions
                   <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-                </a>
+                </Link>
               </div>
             </CardContent>
           </Card>
@@ -332,20 +250,20 @@ export default function Home() {
       </div>
 
       {/* Top Rated Section */}
-      <div className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {/* Top Nominees */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-900">Most Corrupt Officials</h2>
-              <a href="/leaderboard?tab=officials" className="text-blue-600 hover:underline">View All</a>
-            </div>
-            <div className="space-y-4">
-              {isLoading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : (
-                topNominees.map((nominee) => (
-                  <a 
+      {statsData && (
+        <div className="max-w-7xl mx-auto px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8 mb-16">
+            {/* Top Nominees */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Most Corrupt Officials</h2>
+                <Link href="/leaderboard?tab=officials" className="text-blue-600 hover:underline">
+                  View All
+                </Link>
+              </div>
+              <div className="space-y-4">
+                {statsData.topNominees?.map((nominee) => (
+                  <Link 
                     key={nominee.id}
                     href={`/nominees/${nominee.id}`}
                     className="block p-4 rounded-lg hover:bg-gray-50 transition border border-gray-100"
@@ -354,31 +272,29 @@ export default function Home() {
                       <div>
                         <h3 className="font-semibold text-lg text-slate-900">{nominee.name}</h3>
                         <p className="text-sm text-gray-600">
-                          {nominee.position.name} at {nominee.institution.name}
+                          {nominee.position?.name} at {nominee.institution?.name}
                         </p>
                       </div>
                       <div className="text-lg font-bold text-red-600">
                         {calculateAverageRating(nominee.rating)}/5
                       </div>
                     </div>
-                  </a>
-                ))
-              )}
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
 
-          {/* Top Institutions */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-900">Most Corrupt Institutions</h2>
-              <a href="/leaderboard?tab=institutions" className="text-blue-600 hover:underline">View All</a>
-            </div>
-            <div className="space-y-4">
-              {isLoading ? (
-                <div className="text-center py-8">Loading...</div>
-              ) : (
-                topInstitutions.map((institution) => (
-                  <a 
+            {/* Top Institutions */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-slate-900">Most Corrupt Institutions</h2>
+                <Link href="/leaderboard?tab=institutions" className="text-blue-600 hover:underline">
+                  View All
+                </Link>
+              </div>
+              <div className="space-y-4">
+                {statsData.topInstitutions?.map((institution) => (
+                  <Link 
                     key={institution.id}
                     href={`/institutions/${institution.id}`}
                     className="block p-4 rounded-lg hover:bg-gray-50 transition border border-gray-100"
@@ -391,13 +307,13 @@ export default function Home() {
                         {calculateAverageRating(institution.rating)}/5
                       </div>
                     </div>
-                  </a>
-                ))
-              )}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

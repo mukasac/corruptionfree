@@ -1,30 +1,38 @@
+// app/rate-institution/page.tsx
 "use client";
+
 import { useState, useEffect } from "react";
 import { RatingCategory } from "@/types/interfaces";
 import { useRouter } from "next/navigation";
-import { PlusCircle, X } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { PlusCircle, AlertTriangle } from "lucide-react";
+
+interface Rating {
+  ratingCategoryId: number;
+  score: number;
+  severity: number;
+  evidence: string;
+}
 
 interface NewInstitution {
   name: string;
+  description?: string;
   evidence: string;
 }
 
 export default function CreateInstitutionPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<RatingCategory[]>([]);
-  const [ratings, setRatings] = useState<{
-    ratingCategoryId: number;
-    score: number;
-    severity: number;
-    evidence: string;
-  }[]>([]);
+  const [ratings, setRatings] = useState<Rating[]>([]);
   const [institutionName, setInstitutionName] = useState<string>("");
+  const [institutionDescription, setInstitutionDescription] = useState<string>("");
   const [institutionEvidence, setInstitutionEvidence] = useState<string>("");
   const [showNewInstitution, setShowNewInstitution] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newInstitution, setNewInstitution] = useState<NewInstitution>({
     name: '',
+    description: '',
     evidence: ''
   });
 
@@ -32,11 +40,21 @@ export default function CreateInstitutionPage() {
     async function fetchData() {
       try {
         const categoriesRes = await fetch("/api/ratingcategories/");
-        const categoriesData = await categoriesRes.json();
-        setCategories(categoriesData.data);
+        
+        if (!categoriesRes.ok) {
+          throw new Error('Failed to fetch rating categories');
+        }
+
+        const result = await categoriesRes.json();
+        
+        if (result.success) {
+          setCategories(result.data);
+        } else {
+          throw new Error(result.error || 'Failed to load categories');
+        }
       } catch (error) {
         console.error("Error fetching categories:", error);
-        setError("Failed to load categories. Please refresh the page.");
+        setError("Failed to load rating categories. Please refresh the page.");
       }
     }
 
@@ -45,68 +63,100 @@ export default function CreateInstitutionPage() {
 
   const handleQuickAdd = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newInstitution.name.trim()) return;
+    if (!newInstitution.name.trim() || !newInstitution.evidence.trim()) {
+      setError("Institution name and evidence are required");
+      return;
+    }
 
     try {
       const response = await fetch('/api/institutions/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newInstitution),
+        body: JSON.stringify({
+          name: newInstitution.name,
+          description: newInstitution.description,
+          evidence: newInstitution.evidence
+        }),
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        setInstitutionName(data.name);
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setInstitutionName(result.data.name);
+        setInstitutionDescription(result.data.description || '');
         setInstitutionEvidence(newInstitution.evidence);
         setShowNewInstitution(false);
-        setNewInstitution({ name: '', evidence: '' });
+        setNewInstitution({ name: '', description: '', evidence: '' });
+        setError(null);
       } else {
-        throw new Error('Failed to add institution');
+        throw new Error(result.error || 'Failed to add institution');
       }
     } catch (error) {
       console.error('Error adding institution:', error);
-      setError('Failed to add institution. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to add institution. Please try again.');
     }
   };
 
-  const handleRate = (
-    categoryId: number,
-    score: number,
-    severity: number,
-    evidence: string,
-  ) => {
-    setRatings((prev) => {
-      const existing = prev.find((r) => r.ratingCategoryId === categoryId);
+  const handleRate = (categoryId: number, score: number) => {
+    setRatings(prev => {
+      const existing = prev.find(r => r.ratingCategoryId === categoryId);
       if (existing) {
-        return prev.map((r) =>
-          r.ratingCategoryId === categoryId
-            ? { ...r, score, severity, evidence }
-            : r,
+        return prev.map(r =>
+          r.ratingCategoryId === categoryId 
+            ? { 
+                ...r, 
+                score,
+                severity: Math.floor(Math.random() * 5) + 1, // We could add UI for this
+                evidence: institutionEvidence 
+              } 
+            : r
         );
       }
       return [
         ...prev,
-        { ratingCategoryId: categoryId, score, severity, evidence },
+        { 
+          ratingCategoryId: categoryId, 
+          score, 
+          severity: Math.floor(Math.random() * 5) + 1,
+          evidence: institutionEvidence 
+        }
       ];
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation
+    if (!institutionName.trim()) {
+      setError("Institution name is required");
+      return;
+    }
+
+    if (!institutionEvidence.trim()) {
+      setError("Evidence is required");
+      return;
+    }
+
+    if (ratings.length === 0) {
+      setError("Please provide at least one rating");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
       const payload = {
         institutionData: {
-          name: institutionName,
-          evidence: institutionEvidence,
+          name: institutionName.trim(),
+          description: institutionDescription.trim(),
+          evidence: institutionEvidence.trim(),
         },
-        ratings: ratings.map((rating) => ({
-          userId: 1,
+        ratings: ratings.map(rating => ({
+          userId: 1, // This should come from authentication
           ...rating,
-          severity: Math.floor(Math.random() * 5) + 1,
-          evidence: institutionEvidence,
+          evidence: institutionEvidence.trim()
         })),
       };
 
@@ -118,14 +168,16 @@ export default function CreateInstitutionPage() {
         body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        router.push("/institutions");
-      } else {
-        throw new Error('Failed to submit institution rating');
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to submit institution rating');
       }
+
+      router.push("/institutions");
     } catch (error) {
       console.error("Error submitting institution:", error);
-      setError("Failed to submit institution. Please try again.");
+      setError(error instanceof Error ? error.message : "Failed to submit institution. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -134,7 +186,8 @@ export default function CreateInstitutionPage() {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5" />
           {error}
         </div>
       </div>
@@ -143,37 +196,49 @@ export default function CreateInstitutionPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-3xl text-gray-700 font-bold mb-8">
-        Create New Institution
+      <h1 className="text-3xl text-gray-900 font-bold mb-8">
+        Rate Institution
       </h1>
+
       <form onSubmit={handleSubmit} className="space-y-8">
-        <div className="bg-white rounded-lg p-6 shadow-md space-y-4">
-          <h2 className="text-xl text-gray-700 font-semibold mb-4">
-            Basic Information
-          </h2>
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-6">Basic Information</h2>
 
           {/* Quick Add Institution */}
           {!showNewInstitution ? (
-            <div className="flex justify-between items-center">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700">
+                  Name:
+                  <input
+                    type="text"
+                    value={institutionName}
+                    onChange={(e) => setInstitutionName(e.target.value)}
+                    required
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Enter institution name"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowNewInstitution(true)}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 ml-4"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  Add New
+                </button>
+              </div>
+              
               <label className="block text-sm font-medium text-gray-700">
-                Name:
-                <input
-                  type="text"
-                  value={institutionName}
-                  onChange={(e) => setInstitutionName(e.target.value)}
-                  required
+                Description:
+                <textarea
+                  value={institutionDescription}
+                  onChange={(e) => setInstitutionDescription(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  placeholder="Enter institution name"
+                  rows={3}
+                  placeholder="Enter institution description (optional)"
                 />
               </label>
-              <button
-                type="button"
-                onClick={() => setShowNewInstitution(true)}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 ml-4"
-              >
-                <PlusCircle className="w-4 h-4" />
-                Add New
-              </button>
             </div>
           ) : (
             <div className="space-y-4 p-4 border border-gray-200 rounded-lg">
@@ -185,6 +250,13 @@ export default function CreateInstitutionPage() {
                   value={newInstitution.name}
                   onChange={(e) => setNewInstitution(prev => ({ ...prev, name: e.target.value }))}
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+                <textarea
+                  placeholder="Description (optional)"
+                  value={newInstitution.description}
+                  onChange={(e) => setNewInstitution(prev => ({ ...prev, description: e.target.value }))}
+                  className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  rows={3}
                 />
                 <textarea
                   placeholder="Evidence"
@@ -200,13 +272,13 @@ export default function CreateInstitutionPage() {
                   onClick={handleQuickAdd}
                   className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  Add
+                  Add Institution
                 </button>
                 <button
                   type="button"
                   onClick={() => {
                     setShowNewInstitution(false);
-                    setNewInstitution({ name: '', evidence: '' });
+                    setNewInstitution({ name: '', description: '', evidence: '' });
                   }}
                   className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
                 >
@@ -215,14 +287,14 @@ export default function CreateInstitutionPage() {
               </div>
             </div>
           )}
-          
+
           {/* Evidence Field */}
-          <div className="space-y-2">
+          <div className="mt-6">
             <label className="block text-sm font-medium text-gray-700">
               Evidence
               <textarea
                 required
-                className="mt-1 block w-full text-gray-700 rounded-md border-gray-300 shadow focus:border-blue-500 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 rows={4}
                 value={institutionEvidence}
                 onChange={(e) => setInstitutionEvidence(e.target.value)}
@@ -230,79 +302,75 @@ export default function CreateInstitutionPage() {
               />
             </label>
           </div>
-        </div>
+        </Card>
 
-        {/* Rating Categories Section */}
+        {/* Rating Categories */}
         <div className="space-y-6">
-          <h2 className="text-xl text-gray-700 font-semibold">
-            Rate Corruption Metrics
-          </h2>
+          <h2 className="text-xl font-semibold">Rate Corruption Metrics</h2>
           <p className="text-gray-600">
-            Rate each metric from 1 (Minor) to 5 (Extreme) based on available evidence.
+            Rate each metric from 1 (Minor) to 5 (Extreme) based on evidence.
+            <span className="text-red-600 ml-1">*At least one rating is required</span>
           </p>
+
           <div className="grid gap-6 md:grid-cols-2">
             {categories.map((category) => (
-              <div
-                key={category.id}
-                className="bg-white rounded-lg p-4 shadow-md"
-              >
-                <div className="flex items-center gap-2">
+              <Card key={category.id} className="p-4">
+                <div className="flex items-center gap-2 mb-3">
                   <span className="text-2xl">{category.icon}</span>
-                  <h3 className="text-lg text-gray-700 font-medium">
-                    {category.name}
-                  </h3>
+                  <h3 className="text-lg font-medium">{category.name}</h3>
                 </div>
-                <p className="text-gray-500 text-sm mt-1">
+
+                <p className="text-sm text-gray-600 mb-4">
                   {category.description}
                 </p>
-                {category.examples && category.examples.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-sm font-medium text-gray-700">Examples:</p>
-                    <ul className="list-disc list-inside text-sm text-gray-600">
+
+                {category.examples?.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium mb-2">Examples:</h4>
+                    <ul className="text-sm text-gray-600 list-disc list-inside">
                       {category.examples.map((example, index) => (
                         <li key={index}>{example}</li>
                       ))}
                     </ul>
                   </div>
                 )}
-                <div className="flex items-center justify-between mt-4">
+
+                <div className="flex justify-between">
                   {[1, 2, 3, 4, 5].map((score) => (
                     <button
                       key={score}
                       type="button"
-                      onClick={() =>
-                        handleRate(category.id, score, 2, institutionEvidence)
-                      }
-                      className={`px-3 py-1 text-gray-600 rounded transition-colors ${
-                        ratings.find(
-                          (r) =>
-                            r.ratingCategoryId === category.id &&
-                            r.score === score
+                      onClick={() => handleRate(category.id, score)}
+                      className={`
+                        px-4 py-2 rounded transition-colors
+                        ${ratings.find(r => 
+                          r.ratingCategoryId === category.id && 
+                          r.score === score
                         )
                           ? "bg-blue-600 text-white"
-                          : "bg-gray-200 hover:bg-gray-300"
-                      }`}
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"}
+                      `}
                     >
                       {score}
                     </button>
                   ))}
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`w-full py-4 px-8 rounded-md font-medium transition-colors ${
-            isSubmitting
+          className={`
+            w-full py-4 rounded-md font-medium text-white
+            ${isSubmitting
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
-          }`}
+              : "bg-blue-600 hover:bg-blue-700"}
+          `}
         >
-          {isSubmitting ? "Submitting..." : "Submit Institution"}
+          {isSubmitting ? "Submitting..." : "Submit Institution Rating"}
         </button>
       </form>
     </div>

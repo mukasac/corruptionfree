@@ -1,47 +1,51 @@
-"use client"; // Ensure this is a client component
+// app/institutions/[id]/page.tsx
+"use client";
 
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import React, { useEffect, useState } from "react";
-import { Institution } from "@/types/interfaces"; // Adjust imports to match your types
-
-const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+import { Institution } from "@/types/interfaces";
+import Link from "next/link";
 
 export default function InstitutionPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
   const [institution, setInstitution] = useState<Institution | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    params.then(({ id }) => {
-      const fetchInstitution = async () => {
-        try {
-          const response = await fetch(`${baseUrl}institutions/${id}/`);
-          if (!response.ok) {
-            throw new Error("Failed to fetch institution data.");
-          }
-          const data = await response.json();
-          setInstitution(data);
-        } catch (err) {
-          if (err instanceof Error) {
-            setError(err.message);
-          } else {
-            setError("An unknown error occurred");
-          }
+    const fetchInstitution = async () => {
+      try {
+        const response = await fetch(`/api/institutions/${params.id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch institution data.");
         }
-      };
+        const data = await response.json();
+        if (data.success) {
+          setInstitution(data.data);
+        } else {
+          throw new Error(data.error || "Failed to fetch institution data.");
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("An unknown error occurred");
+        }
+      }
+    };
 
+    if (params.id) {
       fetchInstitution();
-    });
-  }, [params]);
+    }
+  }, [params.id]);
 
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-red-100 text-red-800 rounded-lg p-4">
+        <div className="bg-red-100 border border-red-400 text-red-800 rounded-lg p-4">
           <p>Error: {error}</p>
         </div>
       </div>
@@ -51,16 +55,18 @@ export default function InstitutionPage({
   if (!institution) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h1 className="text-2xl text-gray-500">Loading...</h1>
-        </div>
+        <Card>
+          <CardContent>
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
-
-  const weightedScore =
-    institution.rating.reduce((acc, curr) => acc + curr.score, 0) /
-    institution.rating.length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -71,16 +77,21 @@ export default function InstitutionPage({
               <h1 className="text-3xl text-cyan-900 font-bold">
                 {institution.name}
               </h1>
-              {/* <p className="text-xl text-gray-600">{institution.position.name}</p> */}
-              {/* <p className="text-gray-500">{institution.institution.name}</p> */}
+              {institution.avatar && (
+                <img 
+                  src={institution.avatar} 
+                  alt={institution.name} 
+                  className="w-20 h-20 rounded-full mt-2"
+                />
+              )}
             </div>
             <div>
-              <Badge variant={institution.status ? "success" : "warning"}>
-                {institution.status ? "APPROVED" : "PENDING"}
+              <Badge variant={institution.status === 'ACTIVE' ? "success" : "warning"}>
+                {institution.status}
               </Badge>
               <div className="mt-2 text-right">
                 <span className="text-2xl font-bold text-blue-600">
-                  {weightedScore.toFixed(2)}
+                  {institution.averageRating?.toFixed(2) ?? "0.00"}
                 </span>
                 <span className="text-gray-500">/5.0</span>
               </div>
@@ -89,62 +100,88 @@ export default function InstitutionPage({
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-gray-500 mb-4">Evidence</h2>
-              {institution.rating && institution.rating.length > 0 ? (
-                <p className="text-gray-600">
-                  {institution.rating[0].evidence ||
-                    "No Submitted Evidence available."}
-                </p>
-              ) : (
-                <p className="text-gray-600">No ratings available.</p>
-              )}
-            </div>
-
-            <div>
-              <h2 className="text-xl text-gray-500 font-bold mb-4">
-                Corruption Metrics
-              </h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                {institution.rating.map((rating) => (
-                  <div key={rating.id} className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      {/* <p className="text-2xl">{rating.ratingCategory.icon}</p> */}
-                      <span className="font-medium text-gray-500">
-                        {" "}
-                        {rating.ratingCategory.name}
-                      </span>
-                      <span className="text-blue-600 font-bold">
-                        {rating.score.toFixed(1)}/5.0
-                      </span>
+            {institution.rating.length > 0 && (
+              <div>
+                <h2 className="text-xl text-gray-500 font-bold mb-4">
+                  Corruption Metrics
+                </h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {institution.rating.map((rating) => (
+                    <div key={rating.id} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{rating.ratingCategory.icon}</span>
+                          <span className="font-medium text-gray-500">
+                            {rating.ratingCategory.name}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-blue-600 font-bold block">
+                            {rating.score.toFixed(1)}/5.0
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Severity: {rating.severity}/5
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 rounded-full h-2 transition-all duration-300"
+                          style={{ width: `${(rating.score / 5) * 100}%` }}
+                        />
+                      </div>
+                      {rating.evidence && (
+                        <p className="mt-2 text-sm text-gray-600">
+                          {rating.evidence}
+                        </p>
+                      )}
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 rounded-full h-2"
-                        style={{ width: `${(rating.score / 5) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <h2 className="text-xl text-gray-500 font-bold mb-4">
                 Vote Count
               </h2>
               <p className="text-2xl font-bold text-gray-900">
-                {institution.rating.length?.toLocaleString() || 0} votes
+                {institution.totalRatings.toLocaleString()} votes
               </p>
             </div>
-            {/* Rate Button */}
+
+            {institution.comments && institution.comments.length > 0 && (
+              <div>
+                <h2 className="text-xl text-gray-500 font-bold mb-4">
+                  Comments
+                </h2>
+                <div className="space-y-4">
+                  {institution.comments.map((comment) => (
+                    <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        {comment.user.avatar && (
+                          <img
+                            src={comment.user.avatar}
+                            alt={comment.user.name}
+                            className="w-8 h-8 rounded-full"
+                          />
+                        )}
+                        <span className="font-medium">{comment.user.name}</span>
+                      </div>
+                      <p className="text-gray-600">{comment.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end">
-              <a
-                href={`/institutions/${institution.id}/rate`}
-                className="bg-cyan-700 text-white py-2 px-4 rounded-md hover:bg-cyan-800 transition"
+              <Link
+                href={`/rate-institution?id=${institution.id}`}
+                className="bg-cyan-700 text-white py-2 px-4 rounded-md hover:bg-cyan-800 transition-colors"
               >
-                Rate
-              </a>
+                Rate Institution
+              </Link>
             </div>
           </div>
         </CardContent>

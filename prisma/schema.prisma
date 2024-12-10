@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs https//pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate https//pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,61 +8,136 @@ datasource db {
 }
 
 model User {
-  id        Int                 @id @default(autoincrement())
-  name      String
-  email     String              @unique
-  password  String
-  nominated NomineeRating[]
-  reported  InstitutionRating[]
-  createdAt DateTime            @default(now())
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  email               String               @unique
+  password            String
+  avatar              String?
+  role                UserRole             @default(USER)
+  isActive            Boolean              @default(true)
+  nomineeRatings      NomineeRating[]
+  institutionRatings  InstitutionRating[]
+  comments            Comment[]
+  institutionComments InstitutionComment[]
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
 }
 
 model Nominee {
   id            Int             @id @default(autoincrement())
   name          String
+  title         String?
+  avatar        String?
+  biography     String?
   positionId    Int
   institutionId Int
   districtId    Int
   rating        NomineeRating[]
+  comments      Comment[]
   position      Position        @relation(fields: [positionId], references: [id])
   institution   Institution     @relation(fields: [institutionId], references: [id])
   district      District        @relation(fields: [districtId], references: [id])
-  status        Boolean         @default(false)
-  evidence      String? // Nullable field for storing evidence
-  createdAt DateTime            @default(now())
+  status        NomineeStatus   @default(PENDING)
+  evidence      String?
+  documents     String[]        // URLs to supporting documents
+  totalRatings  Int            @default(0)
+  averageRating Float?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([name])
+  @@index([positionId])
+  @@index([institutionId])
+  @@index([districtId])
+  @@index([status])
+  @@index([totalRatings])
+  @@index([averageRating])
+  @@index([createdAt])
+}
+
+enum NomineeStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  UNDER_INVESTIGATION
 }
 
 model Position {
-  id       Int       @id @default(autoincrement())
-  name     String
-  nominees Nominee[]
-  createdAt DateTime            @default(now())
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  description String?
+  level       String?   // e.g., "Senior", "Junior", "Executive"
+  nominees    Nominee[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([name])
+  @@index([level])
+  @@index([createdAt])
 }
 
 model Institution {
-  id       Int       @id @default(autoincrement())
-  name     String
-  status        Boolean         @default(false)
-  nominees Nominee[]
+  id            Int                  @id @default(autoincrement())
+  name          String               @unique
+  type          InstitutionType      @default(GOVERNMENT)
+  avatar        String?
+  description   String?
+  website       String?
+  status        InstitutionStatus    @default(ACTIVE)
+  nominees      Nominee[]
+  rating        InstitutionRating[]
+  comments      InstitutionComment[]
+  totalRatings  Int                  @default(0)
+  averageRating Float?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 
-  rating InstitutionRating[]
-  createdAt DateTime            @default(now())
+  @@index([name])
+  @@index([type])
+  @@index([status])
+  @@index([totalRatings])
+  @@index([averageRating])
+  @@index([createdAt])
+}
+
+enum InstitutionType {
+  GOVERNMENT
+  PARASTATAL
+  AGENCY
+  CORPORATION
+}
+
+enum InstitutionStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_INVESTIGATION
+  SUSPENDED
 }
 
 model District {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  region   String
-  nominees Nominee[]
-  createdAt DateTime            @default(now())
-}
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  region      String
+  description String?
+  population  Int?
+  nominees    Nominee[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-enum Severity {
-  Minor       @map("1")
-  Moderate    @map("2")
-  Significant @map("3")
-  Severe      @map("4")
-  Critical    @map("5")
+  @@index([name])
+  @@index([region])
+  @@index([population])
+  @@index([createdAt])
 }
 
 model NomineeRating {
@@ -76,13 +145,27 @@ model NomineeRating {
   userId           Int
   nomineeId        Int
   ratingCategoryId Int
-  score            Int
-  severity         Int
-  evidence         String
-  createdAt DateTime            @default(now())
-  nominee          Nominee        @relation(fields: [nomineeId], references: [id])
-  user             User           @relation(fields: [userId], references: [id])
-  ratingCategory   RatingCategory @relation(fields: [ratingCategoryId], references: [id])
+  score           Float
+  severity        Int
+  evidence        String?
+  documents       String[]        // URLs to supporting documents
+  status          RatingStatus   @default(PENDING)
+  verifiedAt      DateTime?
+  verifiedBy      Int?
+  nominee         Nominee        @relation(fields: [nomineeId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
+  ratingCategory  RatingCategory @relation(fields: [ratingCategoryId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([nomineeId])
+  @@index([ratingCategoryId])
+  @@index([status])
+  @@index([score])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([nomineeId, ratingCategoryId])
 }
 
 model InstitutionRating {
@@ -90,59 +173,149 @@ model InstitutionRating {
   userId           Int
   institutionId    Int
   ratingCategoryId Int
-  score            Int
-  severity         Int
-  evidence         String
-  createdAt DateTime            @default(now())
-  institution      Institution    @relation(fields: [institutionId], references: [id])
-  user             User           @relation(fields: [userId], references: [id])
-  ratingCategory   RatingCategory @relation(fields: [ratingCategoryId], references: [id])
+  score           Float
+  severity        Int
+  evidence        String?
+  documents       String[]        // URLs to supporting documents
+  status          RatingStatus   @default(PENDING)
+  verifiedAt      DateTime?
+  verifiedBy      Int?
+  institution     Institution    @relation(fields: [institutionId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
+  ratingCategory  RatingCategory @relation(fields: [ratingCategoryId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([institutionId])
+  @@index([ratingCategoryId])
+  @@index([status])
+  @@index([score])
+  @@index([severity])
+  @@index([createdAt])
+  @@index([institutionId, ratingCategoryId])
+}
+
+enum RatingStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+  UNDER_REVIEW
 }
 
 model Department {
-  id         Int              @id @default(autoincrement())
-  name       String
-  categories RatingCategory[]
+  id                         Int                        @id @default(autoincrement())
+  name                      String                     @unique
+  description               String?
+  categories                RatingCategory[]
+  institutionRatingCategory InstitutionRatingCategory[]
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
 
-  InstitutionRatingCategory InstitutionRatingCategory[]
-  createdAt DateTime            @default(now())
+  @@index([name])
+  @@index([createdAt])
 }
 
 model ImpactArea {
-  id         Int              @id @default(autoincrement())
-  name       String
-  categories RatingCategory[]
+  id                         Int                        @id @default(autoincrement())
+  name                      String                     @unique
+  description               String?
+  severity                  Int                        @default(1)
+  categories                RatingCategory[]
+  institutionRatingCategory InstitutionRatingCategory[]
+  createdAt                 DateTime                    @default(now())
+  updatedAt                 DateTime                    @updatedAt
 
-  InstitutionRatingCategory InstitutionRatingCategory[]
-  createdAt DateTime            @default(now())
+  @@index([name])
+  @@index([severity])
+  @@index([createdAt])
 }
 
 model RatingCategory {
-  id          Int          @id @default(autoincrement())
-  keyword String @unique
-  name        String
-  icon        String
-  description String
-  weight      Int
-  examples    String[]
-  impactAreas ImpactArea[]
-  departments Department[]
+  id                  Int                @id @default(autoincrement())
+  keyword            String             @unique
+  name               String
+  icon               String
+  description        String
+  weight             Int
+  examples           String[]
+  impactAreas        ImpactArea[]
+  departments        Department[]
+  nomineeRatings     NomineeRating[]
+  institutionRatings InstitutionRating[]
+  isActive           Boolean            @default(true)
+  minimumEvidence    Boolean            @default(true)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
 
-  NomineeRating NomineeRating[]
-
-  InstitutionRating InstitutionRating[]
-  createdAt DateTime            @default(now())
+  @@index([keyword])
+  @@index([name])
+  @@index([weight])
+  @@index([isActive])
+  @@index([createdAt])
 }
 
 model InstitutionRatingCategory {
+  id                Int          @id @default(autoincrement())
+  keyword          String       @unique
+  name             String
+  icon             String
+  description      String
+  weight           Int
+  examples         String[]
+  impactAreas      ImpactArea[]
+  departments      Department[]
+  isActive         Boolean      @default(true)
+  minimumEvidence  Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([keyword])
+  @@index([name])
+  @@index([weight])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model Comment {
   id          Int          @id @default(autoincrement())
-  keyword String @unique
-  name        String
-  icon        String
-  description String
-  weight      Int
-  examples    String[]
-  impactAreas ImpactArea[] 
-  departments Department[]
-  createdAt DateTime            @default(now())
+  content     String
+  userId      Int
+  nomineeId   Int
+  status      CommentStatus @default(PENDING)
+  user        User         @relation(fields: [userId], references: [id])
+  nominee     Nominee      @relation(fields: [nomineeId], references: [id])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([nomineeId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([nomineeId, userId])
+}
+
+model InstitutionComment {
+  id            Int           @id @default(autoincrement())
+  content       String
+  userId        Int
+  institutionId Int
+  status        CommentStatus @default(PENDING)
+  user          User          @relation(fields: [userId], references: [id])
+  institution   Institution   @relation(fields: [institutionId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([institutionId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([institutionId, userId])
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
 }

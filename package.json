@@ -2,41 +2,49 @@
   "name": "corrupt-awards",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "ts-node prisma/seed.ts",
+    "seed": "node --loader ts-node/esm prisma/seed.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
-    "postinstall": "prisma generate && prisma migrate deploy  && ts-node prisma/seed.ts"
+    "postinstall": "prisma generate && prisma migrate deploy && node --loader ts-node/esm prisma/seed.ts"
+  },
+  "prisma": {
+    "seed": "node --loader ts-node/esm --experimental-specifier-resolution=node -r tsconfig-paths/register prisma/seed.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.2.0",
     "@prisma/client": "^5.22.0",
     "@radix-ui/react-avatar": "^1.1.1",
-    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-slot": "^1.0.0",
     "@radix-ui/react-tabs": "^1.1.1",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.460.0",
     "next": "15.0.3",
-    "prisma": "^5.22.0",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.17.9",
     "@types/react": "18.3.12",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "15.0.3",
     "postcss": "^8",
     "prettier": "3.3.3",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "5.6.3"
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.7.2"
   }
 }
