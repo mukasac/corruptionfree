@@ -51,6 +51,13 @@ export async function GET(req: NextRequest) {
                     averageRating: true,
                     createdAt: true,
                     updatedAt: true,
+                    rating: {
+                        select: {
+                            evidence: true,
+                            severity: true,
+                            score: true, ratingCategory: true
+                        }
+                    },
                     _count: {
                         select: {
                             nominees: true,

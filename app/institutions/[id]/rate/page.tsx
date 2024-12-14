@@ -40,7 +40,7 @@ export default function RateInstitutionPage({
             throw new Error("Failed to fetch institution details.");
           }
           const data = await response.json();
-          setInstitutionName(data.name);
+          setInstitutionName(data.data.name);
         };
 
         await fetchCategories();

@@ -24,6 +24,7 @@ const NomineeList: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filters, setFilters] = useState({
+        currentPage: 1,
         status: '',
         institutionId: '',
         positionId: ''
@@ -31,7 +32,7 @@ const NomineeList: React.FC = () => {
 
     useEffect(() => {
         fetchNominees();
-    }, [meta.currentPage, searchQuery, filters]);
+    }, [ searchQuery, filters]);
 
     const fetchNominees = async () => {
         try {
@@ -58,8 +59,7 @@ const NomineeList: React.FC = () => {
             });
 
             // Fetch comments for each nominee
-            data.data.forEach(nominee => fetchComments(nominee.id));
-        } catch (error) {
+data.data.forEach((nominee: Nominee) => fetchComments(nominee.id));        } catch (error) {
             setError('Failed to load nominees');
             console.error('Error:', error);
         } finally {
@@ -92,7 +92,7 @@ const NomineeList: React.FC = () => {
                 body: JSON.stringify({
                     nomineeId,
                     content: newComments[nomineeId],
-                    userId: 1 // Replace with actual user ID from auth
+                    userId: 2 // Replace with actual user ID from auth
                 }),
             });
 

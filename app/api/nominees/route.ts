@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient, NomineeStatus } from '@prisma/client';
+import { PrismaClient, NomineeStatus, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
        const skip = (page - 1) * limit;
 
        // Build where clause for filtering
-       const where = {
+       const where: Prisma.NomineeWhereInput = {
            AND: [
                search ? {
                    OR: [

@@ -25,11 +25,11 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
 
+  SystemSettings SystemSettings[]
+
   @@index([email])
   @@index([role])
   @@index([isActive])
-
- 
 }
 
 enum UserRole {
@@ -55,8 +55,8 @@ model Nominee {
   district      District        @relation(fields: [districtId], references: [id])
   status        NomineeStatus   @default(PENDING)
   evidence      String?
-  documents     String[]        // URLs to supporting documents
-  totalRatings  Int            @default(0)
+  documents     String[] // URLs to supporting documents
+  totalRatings  Int             @default(0)
   averageRating Float?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -82,7 +82,7 @@ model Position {
   id          Int       @id @default(autoincrement())
   name        String    @unique
   description String?
-  level       String?   // e.g., "Senior", "Junior", "Executive"
+  level       String? // e.g., "Senior", "Junior", "Executive"
   nominees    Nominee[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -153,18 +153,18 @@ model NomineeRating {
   userId           Int
   nomineeId        Int
   ratingCategoryId Int
-  score           Float
-  severity        Int
-  evidence        String?
-  documents       String[]
-  status          RatingStatus    @default(PENDING)
-  verifiedAt      DateTime?
-  verifiedBy      Int?
-  nominee         Nominee         @relation(fields: [nomineeId], references: [id])
-  user            User            @relation(fields: [userId], references: [id])
-  ratingCategory  RatingCategory  @relation(fields: [ratingCategoryId], references: [id])
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  score            Float
+  severity         Int
+  evidence         String?
+  documents        String[]
+  status           RatingStatus   @default(PENDING)
+  verifiedAt       DateTime?
+  verifiedBy       Int?
+  nominee          Nominee        @relation(fields: [nomineeId], references: [id])
+  user             User           @relation(fields: [userId], references: [id])
+  ratingCategory   RatingCategory @relation(fields: [ratingCategoryId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([userId])
   @@index([nomineeId])
@@ -181,18 +181,18 @@ model InstitutionRating {
   userId           Int
   institutionId    Int
   ratingCategoryId Int
-  score           Float
-  severity        Int
-  evidence        String?
-  documents       String[]
-  status          RatingStatus    @default(PENDING)
-  verifiedAt      DateTime?
-  verifiedBy      Int?
-  institution     Institution     @relation(fields: [institutionId], references: [id])
-  user            User            @relation(fields: [userId], references: [id])
-  ratingCategory  RatingCategory  @relation(fields: [ratingCategoryId], references: [id])
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  score            Float
+  severity         Int
+  evidence         String?
+  documents        String[]
+  status           RatingStatus   @default(PENDING)
+  verifiedAt       DateTime?
+  verifiedBy       Int?
+  institution      Institution    @relation(fields: [institutionId], references: [id])
+  user             User           @relation(fields: [userId], references: [id])
+  ratingCategory   RatingCategory @relation(fields: [ratingCategoryId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([userId])
   @@index([institutionId])
@@ -213,8 +213,8 @@ enum RatingStatus {
 
 // Categories and Classification Models
 model Department {
-  id                         Int                        @id @default(autoincrement())
-  name                      String                     @unique
+  id                        Int                         @id @default(autoincrement())
+  name                      String                      @unique
   description               String?
   categories                RatingCategory[]
   institutionRatingCategory InstitutionRatingCategory[]
@@ -226,10 +226,10 @@ model Department {
 }
 
 model ImpactArea {
-  id                         Int                        @id @default(autoincrement())
-  name                      String                     @unique
+  id                        Int                         @id @default(autoincrement())
+  name                      String                      @unique
   description               String?
-  severity                  Int                        @default(1)
+  severity                  Int                         @default(1)
   categories                RatingCategory[]
   institutionRatingCategory InstitutionRatingCategory[]
   createdAt                 DateTime                    @default(now())
@@ -241,8 +241,8 @@ model ImpactArea {
 }
 
 model RatingCategory {
-  id                  Int                @id @default(autoincrement())
-  keyword            String             @unique
+  id                 Int                 @id @default(autoincrement())
+  keyword            String              @unique
   name               String
   icon               String
   description        String
@@ -252,10 +252,10 @@ model RatingCategory {
   departments        Department[]
   nomineeRatings     NomineeRating[]
   institutionRatings InstitutionRating[]
-  isActive           Boolean            @default(true)
-  minimumEvidence    Boolean            @default(true)
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  isActive           Boolean             @default(true)
+  minimumEvidence    Boolean             @default(true)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 
   @@index([keyword])
   @@index([name])
@@ -265,19 +265,19 @@ model RatingCategory {
 }
 
 model InstitutionRatingCategory {
-  id                Int          @id @default(autoincrement())
-  keyword          String       @unique
-  name             String
-  icon             String
-  description      String
-  weight           Int
-  examples         String[]
-  impactAreas      ImpactArea[]
-  departments      Department[]
-  isActive         Boolean      @default(true)
-  minimumEvidence  Boolean      @default(true)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  id              Int          @id @default(autoincrement())
+  keyword         String       @unique
+  name            String
+  icon            String
+  description     String
+  weight          Int
+  examples        String[]
+  impactAreas     ImpactArea[]
+  departments     Department[]
+  isActive        Boolean      @default(true)
+  minimumEvidence Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@index([keyword])
   @@index([name])
@@ -288,15 +288,15 @@ model InstitutionRatingCategory {
 
 // Comment Models
 model Comment {
-  id          Int           @id @default(autoincrement())
-  content     String
-  userId      Int
-  nomineeId   Int
-  status      CommentStatus @default(PENDING)
-  user        User          @relation(fields: [userId], references: [id])
-  nominee     Nominee       @relation(fields: [nomineeId], references: [id])
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id        Int           @id @default(autoincrement())
+  content   String
+  userId    Int
+  nomineeId Int
+  status    CommentStatus @default(PENDING)
+  user      User          @relation(fields: [userId], references: [id])
+  nominee   Nominee       @relation(fields: [nomineeId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([userId])
   @@index([nomineeId])
@@ -348,13 +348,12 @@ model AdminLog {
 }
 
 model SystemSettings {
-  id          Int      @id @default(autoincrement())
-  key         String   @unique
-  value       Json
-  updatedAt   DateTime @updatedAt
-  updatedBy   Int
-  user        User     @relation(fields: [updatedBy], references: [id])
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy Int
+  user      User     @relation(fields: [updatedBy], references: [id])
 
   @@index([key])
 }
-

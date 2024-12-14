@@ -1,6 +1,6 @@
 // app/admin/nominees/page.tsx
 "use client";
-
+import Cookies from 'js-cookie';
 import React, { useState, useEffect } from 'react';
 import { 
   Search, Filter, AlertTriangle, CheckCircle, 
@@ -92,19 +92,19 @@ export default function NomineesManagement() {
 
       const response = await fetch(`/api/admin/nominees?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${Cookies.get('auth_token')}`
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch nominees');
+        throw new Error('Failed to fetch nominees 1');
       }
       
       const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to fetch nominees');
-      }
+
+      // if (!data.success) {
+      //   throw new Error(data.error || 'Failed to fetch nominees 2');
+      // }
 
       setNominees(data.data);
       setPagination(prev => ({
@@ -117,7 +117,7 @@ export default function NomineesManagement() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch nominees"
+        description: error instanceof Error ? error.message : "Failed to fetch nominees 3"
       });
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ export default function NomineesManagement() {
       const response = await fetch('/api/admin/nominees/batch', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Authorization': `Bearer  ${Cookies.get('auth_token')}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -221,7 +221,7 @@ export default function NomineesManagement() {
       const response = await fetch(`/api/admin/nominees/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer  ${Cookies.get('auth_token')}`
         }
       });
 

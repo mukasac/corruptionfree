@@ -159,14 +159,14 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       overview: {
         nominees: {
-          total: nomineeStats.reduce((acc, curr) => acc + curr._count, 0),
-          pending: nomineeStats.find(s => s.status === 'PENDING')?._count || 0,
-          verified: nomineeStats.find(s => s.status === 'VERIFIED')?._count || 0
+          total: nomineeStats.reduce((acc: number, curr: { _count: number; }) => acc + curr._count, 0),
+          pending: nomineeStats.find((s: { status: string; }) => s.status === 'PENDING')?._count || 0,
+          verified: nomineeStats.find((s: { status: string; }) => s.status === 'VERIFIED')?._count || 0
         },
         institutions: {
-          total: institutionStats.reduce((acc, curr) => acc + curr._count, 0),
-          active: institutionStats.find(s => s.status === 'ACTIVE')?._count || 0,
-          underInvestigation: institutionStats.find(s => s.status === 'UNDER_INVESTIGATION')?._count || 0
+          total: institutionStats.reduce((acc: any, curr: { _count: any; }) => acc + curr._count, 0),
+          active: institutionStats.find((s: { status: string; }) => s.status === 'ACTIVE')?._count || 0,
+          underInvestigation: institutionStats.find((s: { status: string; }) => s.status === 'UNDER_INVESTIGATION')?._count || 0
         },
         ratings: {
           total: ratingStats[0],

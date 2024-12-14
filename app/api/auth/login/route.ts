@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         role: user.role
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
+      { expiresIn: '70d' }
     );
 
     // Remove password from response

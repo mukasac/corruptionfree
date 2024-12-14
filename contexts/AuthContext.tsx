@@ -60,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Token management
   const setToken = (token: string) => {
     document.cookie = `auth_token=${token}; path=/; max-age=604800; SameSite=Lax; ${
-      process.env.NODE_ENV === 'production' ? 'Secure;' : ''
+      process.env.NODE_ENV === 'development' ? 'Secure;' : ''
     }`;
   };
 
