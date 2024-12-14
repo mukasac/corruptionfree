@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,6 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// User and Authentication
 model User {
   id                  Int                  @id @default(autoincrement())
   name                String
@@ -19,12 +21,15 @@ model User {
   institutionRatings  InstitutionRating[]
   comments            Comment[]
   institutionComments InstitutionComment[]
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
+  adminLogs           AdminLog[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
   @@index([email])
   @@index([role])
   @@index([isActive])
+
+ 
 }
 
 enum UserRole {
@@ -33,6 +38,7 @@ enum UserRole {
   MODERATOR
 }
 
+// Nominee and Related Models
 model Nominee {
   id            Int             @id @default(autoincrement())
   name          String
@@ -86,6 +92,7 @@ model Position {
   @@index([createdAt])
 }
 
+// Institution Related Models
 model Institution {
   id            Int                  @id @default(autoincrement())
   name          String               @unique
@@ -140,6 +147,7 @@ model District {
   @@index([createdAt])
 }
 
+// Rating Related Models
 model NomineeRating {
   id               Int            @id @default(autoincrement())
   userId           Int
@@ -148,15 +156,15 @@ model NomineeRating {
   score           Float
   severity        Int
   evidence        String?
-  documents       String[]        // URLs to supporting documents
-  status          RatingStatus   @default(PENDING)
+  documents       String[]
+  status          RatingStatus    @default(PENDING)
   verifiedAt      DateTime?
   verifiedBy      Int?
-  nominee         Nominee        @relation(fields: [nomineeId], references: [id])
-  user            User           @relation(fields: [userId], references: [id])
-  ratingCategory  RatingCategory @relation(fields: [ratingCategoryId], references: [id])
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  nominee         Nominee         @relation(fields: [nomineeId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+  ratingCategory  RatingCategory  @relation(fields: [ratingCategoryId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([userId])
   @@index([nomineeId])
@@ -176,15 +184,15 @@ model InstitutionRating {
   score           Float
   severity        Int
   evidence        String?
-  documents       String[]        // URLs to supporting documents
-  status          RatingStatus   @default(PENDING)
+  documents       String[]
+  status          RatingStatus    @default(PENDING)
   verifiedAt      DateTime?
   verifiedBy      Int?
-  institution     Institution    @relation(fields: [institutionId], references: [id])
-  user            User           @relation(fields: [userId], references: [id])
-  ratingCategory  RatingCategory @relation(fields: [ratingCategoryId], references: [id])
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  institution     Institution     @relation(fields: [institutionId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+  ratingCategory  RatingCategory  @relation(fields: [ratingCategoryId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([userId])
   @@index([institutionId])
@@ -203,6 +211,7 @@ enum RatingStatus {
   UNDER_REVIEW
 }
 
+// Categories and Classification Models
 model Department {
   id                         Int                        @id @default(autoincrement())
   name                      String                     @unique
@@ -277,16 +286,17 @@ model InstitutionRatingCategory {
   @@index([createdAt])
 }
 
+// Comment Models
 model Comment {
-  id          Int          @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   content     String
   userId      Int
   nomineeId   Int
   status      CommentStatus @default(PENDING)
-  user        User         @relation(fields: [userId], references: [id])
-  nominee     Nominee      @relation(fields: [nomineeId], references: [id])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  nominee     Nominee       @relation(fields: [nomineeId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([userId])
   @@index([nomineeId])
@@ -319,3 +329,32 @@ enum CommentStatus {
   REJECTED
   FLAGGED
 }
+
+// Admin Logging
+model AdminLog {
+  id           Int      @id @default(autoincrement())
+  action       String
+  resourceType String
+  resourceIds  Int[]
+  adminId      Int
+  details      String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  admin        User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([adminId])
+  @@index([createdAt])
+}
+
+model SystemSettings {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       Json
+  updatedAt   DateTime @updatedAt
+  updatedBy   Int
+  user        User     @relation(fields: [updatedBy], references: [id])
+
+  @@index([key])
+}
+
